@@ -1,0 +1,555 @@
+<p-toast></p-toast>
+<div class="cultivos-container">
+
+  <div class="cultivos-header fade-in-up">
+    <div class="header-content">
+      <div class="header-title">
+        <h1 class="page-title">
+          <i class="pi pi-leaf"></i>
+          Gestión de Cultivos
+        </h1>
+        <p class="page-subtitle">
+          Administra y monitorea el estado de tus cultivos
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <p-button
+          icon="pi pi-plus"
+          label="Nuevo Cultivo"
+          [class]="'add-button ' + (isMobile ? 'mobile-button' : '')"
+          (onClick)="showAddDialog()">
+        </p-button>
+
+        <p-button
+          [icon]="viewMode === 'cards' ? 'pi pi-table' : 'pi pi-th-large'"
+          [text]="true"
+          [rounded]="true"
+          class="view-toggle"
+          (onClick)="toggleViewMode()"
+          [pTooltip]="viewMode === 'cards' ? 'Vista de tabla' : 'Vista de tarjetas'">
+        </p-button>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters-section fade-in-up">
+    <div class="filters-content">
+      <div class="filters-grid">
+        <div class="filter-item">
+          <label class="filter-label">Buscar cultivo</label>
+          <span class="p-input-icon-left w-full">
+            <i class="pi pi-search"></i>
+            <input
+              type="text"
+              pInputText
+              placeholder="Nombre del cultivo..."
+              [(ngModel)]="filtroNombre"
+              (input)="onFilterChange()"
+              class="w-full">
+          </span>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">Sector</label>
+          <p-dropdown
+            [options]="sectores"
+            [(ngModel)]="filtroSector"
+            placeholder="Todos los sectores"
+            optionLabel="label"
+            optionValue="value"
+            [showClear]="true"
+            (onChange)="onFilterChange()"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">Fase fenológica</label>
+          <p-dropdown
+            [options]="fases"
+            [(ngModel)]="filtroFase"
+            placeholder="Todas las fases"
+            optionLabel="label"
+            optionValue="value"
+            [showClear]="true"
+            (onChange)="onFilterChange()"
+            styleClass="w-full">
+          </p-dropdown>
+        </div>
+
+        <div class="filter-item filter-actions">
+          <p-button
+            label="Limpiar Filtros"
+            icon="pi pi-filter-slash"
+            [text]="true"
+            severity="secondary"
+            (onClick)="clearFilters()">
+          </p-button>
+
+          <div class="export-buttons">
+            <p-button
+              icon="pi pi-file-pdf"
+              [text]="true"
+              [rounded]="true"
+              severity="danger"
+              (onClick)="exportToPDF()"
+              pTooltip="Exportar a PDF">
+            </p-button>
+
+            <p-button
+              icon="pi pi-file-excel"
+              [text]="true"
+              [rounded]="true"
+              severity="success"
+              (onClick)="exportToExcel()"
+              pTooltip="Exportar a Excel">
+            </p-button>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-summary" *ngIf="!loading">
+        <p-chip
+          [label]="'Total: ' + totalRecords + ' cultivos'"
+          icon="pi pi-info-circle">
+        </p-chip>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-section" *ngIf="loading">
+    <div class="skeleton-grid">
+      <div class="skeleton-card" *ngFor="let item of [1,2,3,4,5,6]">
+        <p-skeleton height="200px" styleClass="mb-2"></p-skeleton>
+        <p-skeleton width="60%" styleClass="mb-2"></p-skeleton>
+        <p-skeleton width="80%"></p-skeleton>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section fade-in-up" *ngIf="!loading">
+
+    <div class="cards-view" *ngIf="viewMode === 'cards'">
+      <div class="cards-grid">
+        <div class="cultivo-card" *ngFor="let cultivo of cultivosFiltrados | slice:first:first+rows; trackBy: trackByCultivo!">
+          <div class="card-header">
+            <div class="card-title-section">
+              <h3 class="card-title">{{ cultivo.nombre }}</h3>
+              <p-badge
+                [value]="getFaseLabel(cultivo.faseFenologica)"
+                [severity]="getFaseSeverity(cultivo.faseFenologica)"
+                styleClass="fase-badge">
+              </p-badge>
+            </div>
+
+            <div class="card-actions">
+              <p-button
+                icon="pi pi-eye"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                severity="info"
+
+                pTooltip="Ver detalles">
+              </p-button>
+
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                severity="warn"
+                (onClick)="showEditDialog(cultivo)"
+                pTooltip="Editar">
+              </p-button>
+
+              <p-button
+                icon="pi pi-trash"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                severity="danger"
+                (onClick)="deleteCultivo(cultivo)"
+                pTooltip="Eliminar">
+              </p-button>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <i class="pi pi-map-marker info-icon"></i>
+                <div class="info-content">
+                  <span class="info-label">Sector</span>
+                  <span class="info-value">{{ cultivo.sector }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="pi pi-calendar info-icon"></i>
+                <div class="info-content">
+                  <span class="info-label">Plantación</span>
+                  <span class="info-value">{{ cultivo.fechaPlantacion | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="pi pi-clock info-icon"></i>
+                <div class="info-content">
+                  <span class="info-label">Días plantado</span>
+                  <span class="info-value">{{ getDaysPlanted(cultivo.fechaPlantacion) }} días</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="pi pi-calendar-plus info-icon harvest"></i>
+                <div class="info-content">
+                  <span class="info-label">Cosecha estimada</span>
+                  <span class="info-value harvest-date">{{ cultivo.fechaEstimadaCosecha | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-header">
+                <span class="progress-label">Progreso del cultivo</span>
+                <span class="progress-days">{{ getDaysToHarvest(cultivo.fechaEstimadaCosecha) }} días restantes</span>
+              </div>
+
+              <div class="progress-bar">
+                <div class="progress-fill"
+                     [style.width.%]="(getDaysPlanted(cultivo.fechaPlantacion) / (getDaysPlanted(cultivo.fechaPlantacion) + getDaysToHarvest(cultivo.fechaEstimadaCosecha))) * 100">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="cultivosFiltrados.length === 0">
+        <div class="empty-content">
+          <i class="pi pi-inbox empty-icon"></i>
+          <h3 class="empty-title">No se encontraron cultivos</h3>
+          <p class="empty-description">
+            {{ filtroNombre || filtroSector || filtroFase ?
+            'Intenta ajustar los filtros o crear un nuevo cultivo.' :
+            'Comienza agregando tu primer cultivo.' }}
+          </p>
+          <p-button
+            label="Agregar Cultivo"
+            icon="pi pi-plus"
+            (onClick)="showAddDialog()"
+            *ngIf="!filtroNombre && !filtroSector && !filtroFase">
+          </p-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-view" *ngIf="viewMode === 'table'">
+      <p-table
+        [value]="cultivosFiltrados"
+        [paginator]="true"
+        [rows]="rows"
+        [first]="first"
+        [totalRecords]="totalRecords"
+        [responsive]="true"
+        [loading]="loading"
+        (onPage)="onPageChange($event)"
+        styleClass="cultivos-table">
+
+        <ng-template pTemplate="header">
+          <tr class="table-header">
+            <th pSortableColumn="nombre" class="name-column">
+              <div class="header-content">
+                <span>Cultivo</span>
+                <p-sortIcon field="nombre"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="sector" class="sector-column">
+              <div class="header-content">
+                <span>Sector</span>
+                <p-sortIcon field="sector"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="faseFenologica" class="phase-column">
+              <div class="header-content">
+                <span>Fase</span>
+                <p-sortIcon field="faseFenologica"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="fechaPlantacion" class="date-column">
+              <div class="header-content">
+                <span>Plantación</span>
+                <p-sortIcon field="fechaPlantacion"></p-sortIcon>
+              </div>
+            </th>
+            <th pSortableColumn="fechaEstimadaCosecha" class="harvest-column">
+              <div class="header-content">
+                <span>Cosecha Est.</span>
+                <p-sortIcon field="fechaEstimadaCosecha"></p-sortIcon>
+              </div>
+            </th>
+            <th class="progress-column">Progreso</th>
+            <th class="actions-column">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-cultivo let-rowIndex="rowIndex">
+          <tr class="table-row" [class.even-row]="rowIndex % 2 === 0">
+            <td class="name-cell">
+              <div class="name-content">
+                <i class="pi pi-leaf name-icon"></i>
+                <div>
+                  <span class="cultivo-name">{{ cultivo.nombre }}</span>
+                  <span class="cultivo-id">ID: {{ cultivo.id }}</span>
+                </div>
+              </div>
+            </td>
+
+            <td class="sector-cell">
+              <p-chip [label]="'Sector ' + cultivo.sector" styleClass="sector-chip"></p-chip>
+            </td>
+
+            <td class="phase-cell">
+              <p-badge
+                [value]="getFaseLabel(cultivo.faseFenologica)"
+                [severity]="getFaseSeverity(cultivo.faseFenologica)">
+              </p-badge>
+            </td>
+
+            <td class="date-cell">
+              <div class="date-content">
+                <span class="date-value">{{ cultivo.fechaPlantacion | date:'dd/MM/yyyy' }}</span>
+                <span class="date-days">{{ getDaysPlanted(cultivo.fechaPlantacion) }} días</span>
+              </div>
+            </td>
+
+            <td class="harvest-cell">
+              <div class="harvest-content">
+                <span class="harvest-date">{{ cultivo.fechaEstimadaCosecha | date:'dd/MM/yyyy' }}</span>
+                <span class="harvest-countdown"
+                      [ngClass]="{'urgent': getDaysToHarvest(cultivo.fechaEstimadaCosecha) < 30}">
+                  {{ getDaysToHarvest(cultivo.fechaEstimadaCosecha) }} días restantes
+                </span>
+              </div>
+            </td>
+
+            <td class="progress-cell">
+              <div class="table-progress">
+                <div class="table-progress-bar">
+                  <div class="table-progress-fill"
+                       [style.width.%]="(getDaysPlanted(cultivo.fechaPlantacion) / (getDaysPlanted(cultivo.fechaPlantacion) + getDaysToHarvest(cultivo.fechaEstimadaCosecha))) * 100">
+                  </div>
+                </div>
+                <span class="progress-percentage">
+                  {{ ((getDaysPlanted(cultivo.fechaPlantacion) / (getDaysPlanted(cultivo.fechaPlantacion) + getDaysToHarvest(cultivo.fechaEstimadaCosecha))) * 100).toFixed(0) }}%
+                </span>
+              </div>
+            </td>
+
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <p-button
+                  icon="pi pi-eye"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  severity="info"
+
+                  pTooltip="Ver detalles">
+                </p-button>
+
+                <p-button
+                  icon="pi pi-pencil"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  severity="warn"
+                  (onClick)="showEditDialog(cultivo)"
+                  pTooltip="Editar">
+                </p-button>
+
+                <p-button
+                  icon="pi pi-trash"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  severity="danger"
+                  (onClick)="deleteCultivo(cultivo)"
+                  pTooltip="Eliminar">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="7" class="empty-table-message">
+              <div class="empty-state">
+                <div class="empty-content">
+                  <i class="pi pi-inbox empty-icon"></i>
+                  <h3 class="empty-title">No se encontraron cultivos</h3>
+                  <p class="empty-description">
+                    {{ filtroNombre || filtroSector || filtroFase ?
+                    'Intenta ajustar los filtros o crear un nuevo cultivo.' :
+                    'Comienza agregando tu primer cultivo.' }}
+                  </p>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <div class="pagination-section" *ngIf="viewMode === 'cards' && totalRecords > rows">
+      <p-paginator
+        [first]="first"
+        [rows]="rows"
+        [totalRecords]="totalRecords"
+        [rowsPerPageOptions]="[5, 10, 20]"
+        (onPageChange)="onPageChange($event)">
+      </p-paginator>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog para agregar/editar cultivo -->
+<p-dialog
+  [header]="isEditing ? 'Editar Cultivo' : 'Nuevo Cultivo'"
+  [(visible)]="displayDialog"
+  [modal]="true"
+  [style]="{width: isMobile ? '95vw' : '600px'}"
+  [closable]="true"
+  [responsive]="true"
+  styleClass="cultivo-dialog">
+
+  <div class="dialog-content">
+    <form [formGroup]="cultivoForm" (ngSubmit)="saveCultivo()">
+
+      <div class="form-header">
+        <p class="form-description">
+          {{ isEditing ?
+          'Modifica la información del cultivo seleccionado.' :
+          'Completa la información para registrar un nuevo cultivo en tu sistema.' }}
+        </p>
+      </div>
+
+      <div class="form-grid">
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="nombre" class="form-label">
+              <i class="pi pi-leaf"></i>
+              Nombre del Cultivo
+            </label>
+            <input
+              id="nombre"
+              type="text"
+              pInputText
+              formControlName="nombre"
+              class="w-full"
+              placeholder="Ej: Tomates Cherry, Lechugas Romanas..."
+              [class.ng-invalid]="cultivoForm.get('nombre')?.invalid && cultivoForm.get('nombre')?.touched">
+
+            <small class="form-error"
+                   *ngIf="cultivoForm.get('nombre')?.invalid && cultivoForm.get('nombre')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              El nombre es requerido (mínimo 2 caracteres)
+            </small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="sector" class="form-label">
+              <i class="pi pi-map-marker"></i>
+              Sector
+            </label>
+            <p-dropdown
+              id="sector"
+              [options]="sectores"
+              formControlName="sector"
+              placeholder="Selecciona el sector"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full"
+              [class.ng-invalid]="cultivoForm.get('sector')?.invalid && cultivoForm.get('sector')?.touched">
+            </p-dropdown>
+
+            <small class="form-error"
+                   *ngIf="cultivoForm.get('sector')?.invalid && cultivoForm.get('sector')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              Selecciona un sector
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label for="faseFenologica" class="form-label">
+              <i class="pi pi-chart-line"></i>
+              Fase Fenológica
+            </label>
+            <p-dropdown
+              id="faseFenologica"
+              [options]="fases"
+              formControlName="faseFenologica"
+              placeholder="Selecciona la fase"
+              optionLabel="label"
+              optionValue="value"
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="fechaPlantacion" class="form-label">
+              <i class="pi pi-calendar"></i>
+              Fecha de Plantación
+            </label>
+            <p-calendar
+              id="fechaPlantacion"
+              formControlName="fechaPlantacion"
+              [showIcon]="true"
+              iconDisplay="input"
+              inputId="fechaPlantacion"
+              placeholder="Selecciona la fecha"
+              dateFormat="dd/mm/yy"
+              [maxDate]="maxDate"
+              styleClass="w-full"
+              [class.ng-invalid]="cultivoForm.get('fechaPlantacion')?.invalid && cultivoForm.get('fechaPlantacion')?.touched">
+            </p-calendar>
+
+            <small class="form-error"
+                   *ngIf="cultivoForm.get('fechaPlantacion')?.invalid && cultivoForm.get('fechaPlantacion')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              La fecha de plantación es requerida
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <p-button
+          [label]="isEditing ? 'Actualizar' : 'Crear Cultivo'"
+          [icon]="isEditing ? 'pi pi-check' : 'pi pi-plus'"
+          type="submit"
+          [disabled]="!cultivoForm.valid"
+          [loading]="loading"
+          styleClass="save-button">
+        </p-button>
+
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          type="button"
+          (onClick)="hideDialog()"
+          styleClass="cancel-button">
+        </p-button>
+      </div>
+    </form>
+  </div>
+</p-dialog>

@@ -1,0 +1,103 @@
+<p-toast></p-toast>
+<div class="analisis-container" [ngClass]="{'mobile-layout': isMobile}">
+  <div class="analisis-header fade-in-up">
+    <div class="header-content">
+      <div class="header-title">
+        <h1 class="page-title">
+          <i class="pi pi-eye"></i>
+          Análisis Visual de Cultivos
+        </h1>
+        <p class="page-subtitle">
+          Detección automática de anomalías mediante inteligencia artificial
+        </p>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-value">{{ estadisticas.totalAnalisis }}</div>
+          <div class="stat-label">Análisis Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ formatConfianza(estadisticas.confianzaPromedio) }}</div>
+          <div class="stat-label">Confianza Promedio</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ estadisticas.anomaliasDetectadas }}</div>
+          <div class="stat-label">Anomalías Detectadas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-section" *ngIf="loading">
+    <div class="loading-content">
+      <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+      <p class="loading-text">Cargando sistema de análisis...</p>
+    </div>
+  </div>
+
+  <div class="main-content" *ngIf="!loading">
+
+    <p-tabView styleClass="analysis-tabs">
+
+      <p-tabPanel header="Nuevo Análisis" leftIcon="pi pi-plus">
+        <p class="analysis-section">
+
+        <div class="upload-analysis-grid">
+
+          <div class="upload-card">
+            <div class="upload-header">
+              <h3>
+                <i class="pi pi-cloud-upload"></i>
+                Cargar Imagen
+              </h3>
+              <p>Sube una imagen de hoja para análisis automático</p>
+            </div>
+
+            <div class="upload-content">
+              <div class="upload-area" *ngIf="!analizando && !mostrarConfirmacion">
+                <div class="upload-zone">
+                  <i class="pi pi-image upload-icon"></i>
+                  <p class="upload-text">Arrastra una imagen aquí o haz clic para seleccionar</p>
+                  <p class="upload-subtitle">Formatos: JPG, PNG, WebP (máx. 10MB)</p>
+
+                  <p-fileUpload
+                    mode="basic"
+                    name="imagen"
+                    accept="image/*"
+                    maxFileSize="10000000"
+                    chooseLabel="Seleccionar Imagen"
+                    (onUpload)="onFileUpload($event)"
+                    [auto]="true"
+                    styleClass="upload-button">
+                  </p-fileUpload>
+                </div>
+              </div>
+
+              <div class="analyzing-state" *ngIf="analizando">
+                <div class="analyzing-content">
+                  <div class="analyzing-spinner">
+                    <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+                  </div>
+                  <h4>Analizando imagen...</h4>
+                  <p>Procesando con inteligencia artificial</p>
+                  <div class="analyzing-steps">
+                    <div class="step active">
+                      <i class="pi pi-upload"></i>
+                      <span>Imagen cargada</span>
+                    </div>
+                    <div class="step active">
+                      <i class="pi pi-cog"></i>
+                      <span>Procesando...</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+</div>
+
+

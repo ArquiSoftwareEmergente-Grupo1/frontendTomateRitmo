@@ -1,0 +1,63 @@
+<div class="header-container">
+  <div class="header-content">
+
+    <div class="header-left">
+      <p-button
+        icon="pi pi-bars"
+        [text]="true"
+        [rounded]="true"
+        (onClick)="onMenuClick()"
+        class="menu-toggle"
+        size="large"
+        pTooltip="Menú de navegación">
+      </p-button>
+
+      <div class="header-brand" *ngIf="!isMobile">
+        <img
+          src="https://i.postimg.cc/RZNyjZGf/tomate-ritmo-logo-removebg-preview.png"
+          alt="TomateRitmo"
+          class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">TOMATERITMO</span>
+          <span class="brand-tagline">Smart Agriculture</span>
+        </div>
+      </div>
+
+      <div class="page-info" *ngIf="!isMobile">
+        <div class="breadcrumb-separator">|</div>
+        <h1 class="page-title">{{ currentPageTitle }}</h1>
+      </div>
+    </div>
+
+    <div class="header-center" *ngIf="isMobile">
+      <h1 class="mobile-page-title">{{ currentPageTitle }}</h1>
+    </div>
+
+    <div class="header-right">
+
+      <div class="user-greeting" *ngIf="!isMobile && currentUser">
+        <span class="greeting-text">{{ getGreeting() }}</span>
+        <span class="user-name">{{ currentUser.name | titlecase }}</span>
+      </div>
+
+      <div class="user-menu" *ngIf="currentUser">
+        <p-avatar
+          [label]="getUserInitials()"
+          styleClass="user-avatar"
+          size="normal"
+          shape="circle"
+          [style]="{'background-color': '#2E7D32', 'color': 'white'}"
+          (click)="menu.toggle($event)"
+          #avatar>
+        </p-avatar>
+
+        <p-menu
+          #menu
+          [model]="userMenuItems"
+          [popup]="true"
+          styleClass="user-dropdown">
+        </p-menu>
+      </div>
+    </div>
+  </div>
+</div>

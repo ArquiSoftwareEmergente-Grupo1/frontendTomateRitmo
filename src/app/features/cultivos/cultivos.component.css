@@ -1,0 +1,856 @@
+.cultivos-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
+  padding: 1.5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.cultivos-header {
+  background: linear-gradient(135deg, #005F40 0%, #2E7D32 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  color: white;
+  box-shadow: 0 10px 40px rgba(0, 95, 64, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.cultivos-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 120%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+
+.table-view {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.cultivos-table {
+  border-radius: 0 !important;
+}
+
+.table-header {
+  background: linear-gradient(135deg, #005F40 0%, #2E7D32 100%) !important;
+  color: white !important;
+}
+
+.table-header th {
+  border: none !important;
+  padding: 1rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-row {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #F5F5F5 !important;
+}
+
+.table-row:hover {
+  background: #F8FFF8 !important;
+  transform: scale(1.01);
+}
+
+.even-row {
+  background: #FAFAFA !important;
+}
+
+.table-row td {
+  padding: 1rem !important;
+  border: none !important;
+  vertical-align: middle !important;
+}
+
+
+.name-cell .name-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.name-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #E8F5E8;
+  color: #388E3C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.cultivo-name {
+  font-weight: 600;
+  color: #333;
+  display: block;
+  font-size: 0.875rem;
+}
+
+.cultivo-id {
+  font-size: 0.75rem;
+  color: #666;
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.sector-chip {
+  background: #E3F2FD !important;
+  color: #1976D2 !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.date-content,
+.harvest-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-value,
+.harvest-date {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.harvest-date {
+  color: #F57C00 !important;
+}
+
+.date-days,
+.harvest-countdown {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.harvest-countdown.urgent {
+  color: #F44336;
+  font-weight: 600;
+}
+
+.table-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #E8F5E8;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.table-progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.progress-percentage {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #388E3C;
+  min-width: 35px;
+  text-align: right;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+}
+
+.empty-content {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #E0E0E0;
+  margin-bottom: 1.5rem;
+}
+
+.empty-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 1rem 0;
+}
+
+.empty-description {
+  font-size: 1rem;
+  color: #999;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.empty-table-message {
+  text-align: center !important;
+  padding: 2rem !important;
+}
+
+
+.pagination-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.cultivo-dialog .p-dialog-header {
+  background: linear-gradient(135deg, #005F40 0%, #2E7D32 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+  border: none;
+}
+
+.cultivo-dialog .p-dialog-content {
+  padding: 0;
+  border-radius: 0 0 16px 16px;
+}
+
+.dialog-content {
+  padding: 2rem;
+}
+
+.form-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.form-description {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.form-row:has(.form-field:nth-child(2)) {
+  grid-template-columns: 1fr 1fr;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-label i {
+  color: #005F40;
+  font-size: 1rem;
+}
+
+.form-error {
+  color: #F44336;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E0E0E0;
+}
+
+.save-button {
+  background: linear-gradient(135deg, #005F40 0%, #2E7D32 100%) !important;
+  border: none !important;
+  padding: 0.75rem 2rem !important;
+  font-weight: 600 !important;
+}
+
+.cancel-button {
+  background: #F5F5F5 !important;
+  color: #666 !important;
+  border: 1px solid #E0E0E0 !important;
+  padding: 0.75rem 2rem !important;
+}
+
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@media (max-width: 1200px) {
+  .cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .cultivos-container {
+    padding: 1rem;
+  }
+
+  .cultivos-header {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .filters-section {
+    padding: 1rem;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filter-actions {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .cultivo-card {
+    padding: 1rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .card-actions {
+    justify-content: center;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .cultivos-table .sector-column,
+  .cultivos-table .date-column,
+  .cultivos-table .progress-column {
+    display: none;
+  }
+
+  .cultivos-table .sector-cell,
+  .cultivos-table .date-cell,
+  .cultivos-table .progress-cell {
+    display: none;
+  }
+
+  .form-row:has(.form-field:nth-child(2)) {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .dialog-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cultivos-container {
+    padding: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .info-item {
+    gap: 0.5rem;
+  }
+
+  .info-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+  }
+
+  .empty-title {
+    font-size: 1.25rem;
+  }
+
+
+  .cultivos-table .phase-column,
+  .cultivos-table .harvest-column {
+    display: none;
+  }
+
+  .cultivos-table .phase-cell,
+  .cultivos-table .harvest-cell {
+    display: none;
+  }
+}
+
+
+@media print {
+  .cultivos-container {
+    background: white;
+    padding: 0;
+  }
+
+  .cultivos-header {
+    background: #005F40;
+    print-color-adjust: exact;
+  }
+
+  .header-actions,
+  .filters-section,
+  .action-buttons,
+  .form-actions {
+    display: none;
+  }
+
+  .cultivo-card,
+  .table-view {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+}
+
+
+
+@media (prefers-contrast: less) {
+  .cultivo-card,
+  .filters-section {
+    border: 2px solid #000;
+  }
+
+  .progress-bar,
+  .table-progress-bar {
+    border: 1px solid #000;
+  }
+
+  .info-icon {
+    border: 1px solid #000;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .cultivo-card,
+  .table-row,
+  .progress-fill,
+  .table-progress-fill {
+    transition: none;
+  }
+
+  .fade-in-up {
+    animation: none;
+  }
+
+  .progress-fill::after {
+    animation: none;
+  }
+}
+
+@keyframes headerFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-30px) rotate(180deg); }
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-title i {
+  font-size: 2.2rem;
+  opacity: 0.9;
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0.5rem 0 0 0;
+  font-weight: 300;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.add-button {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px);
+  color: white !important;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+}
+
+.add-button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-button {
+  padding: 0.75rem !important;
+}
+
+.view-toggle {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  width: 45px !important;
+  height: 45px !important;
+}
+
+
+.filters-section {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.results-summary {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.loading-section {
+  margin-bottom: 2rem;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.skeleton-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+
+.cards-view {
+  margin-bottom: 2rem;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.cultivo-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cultivo-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #005F40 0%, #2E7D32 100%);
+}
+
+.cultivo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 95, 64, 0.15);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.card-title-section {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.fase-badge {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.info-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F1F8E9;
+  color: #388E3C;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.info-icon.harvest {
+  background: #FFF3E0;
+  color: #F57C00;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  color: #333;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.harvest-date {
+  color: #F57C00 !important;
+}
+
+.progress-section {
+  border-top: 1px solid #E0E0E0;
+  padding-top: 1rem;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.progress-days {
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #E8F5E8;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+  animation: headerFloat 8s ease-in-out infinite;
+}

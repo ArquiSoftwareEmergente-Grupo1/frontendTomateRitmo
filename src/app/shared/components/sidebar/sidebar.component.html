@@ -1,0 +1,75 @@
+<div class="sidebar-overlay"
+     [class.active]="visible"
+     (click)="closeSidebar()"></div>
+
+<div class="custom-sidebar"
+     [class.open]="visible">
+
+  <div class="sidebar-header">
+    <div class="sidebar-brand">
+      <img src="https://i.postimg.cc/RZNyjZGf/tomate-ritmo-logo-removebg-preview.png"
+           alt="TomateRitmo"
+           class="sidebar-logo">
+      <div class="brand-info">
+        <span class="brand-title">TomateRitmo</span>
+        <span class="brand-subtitle">Smart Agriculture</span>
+      </div>
+    </div>
+    <button class="close-button"
+            (click)="closeSidebar()"
+            *ngIf="isMobile">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <span class="nav-section-title">Principal</span>
+      <ul class="nav-menu">
+        <li class="nav-item" *ngFor="let item of menuItems">
+          <a [routerLink]="item.routerLink"
+             routerLinkActive="active"
+             class="nav-link"
+             (click)="navigateTo(item.routerLink)">
+            <div class="nav-link-content">
+              <i [class]="item.icon" class="nav-icon"></i>
+              <div class="nav-text">
+                <span class="nav-label">{{ item.label }}</span>
+                <span class="nav-description" *ngIf="item.description">
+                  {{ item.description }}
+                </span>
+              </div>
+              <span class="nav-badge" *ngIf="item.badge" [class]="item.badgeClass">
+                {{ item.badge }}
+              </span>
+            </div>
+            <div class="nav-indicator"></div>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer" *ngIf="currentUser">
+    <div class="user-profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">{{ getUserInitials() }}</div>
+        <div class="profile-info">
+          <span class="profile-name">{{ currentUser.name }}</span>
+          <span class="profile-email">{{ currentUser.email }}</span>
+          <span class="plan-badge">{{ getPlan() }}</span>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button class="profile-button" (click)="navigateToProfile()">
+          <i class="pi pi-user"></i>
+          Mi Perfil
+        </button>
+        <button class="logout-button" (click)="logout()">
+          <i class="pi pi-sign-out"></i>
+          Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

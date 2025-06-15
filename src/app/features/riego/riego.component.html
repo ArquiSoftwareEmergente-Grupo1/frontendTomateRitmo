@@ -1,0 +1,257 @@
+<p-toast></p-toast>
+<div class="riego-container p-4" *ngIf="!loading && configuracion">
+  <div class="main-header-card">
+    <div class="header-content">
+      <div class="title-section">
+        <div class="icon-container">
+          <i class="pi pi-sitemap"></i>
+        </div>
+        <div class="title-info">
+          <h1>Control de Riego</h1>
+          <p>Gestión inteligente del sistema de irrigación</p>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <div class="stat-item">
+          <div class="stat-number">{{ estadisticas.consumoDiario }}L</div>
+          <div class="stat-label">Consumo Hoy</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ estadisticas.riegosHoy }}</div>
+          <div class="stat-label">Riegos</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">{{ estadisticas.eficiencia }}%</div>
+          <div class="stat-label">Eficiencia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="col-12">
+      <div class="card p-4 mb-4 tipo-riego-card">
+        <div class="card-header">
+          <h3><i class="pi pi-cog"></i> Tipo de riego</h3>
+          <div class="status-indicator" [class.active]="sistemaActivo">
+            <span>{{ sistemaActivo ? 'Sistema Activo' : 'Sistema Inactivo' }}</span>
+          </div>
+        </div>
+        <div class="flex justify-content-center">
+          <div class="riego-toggle-container">
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="tipoRiego === 'Manual'"
+              (click)="tipoRiego = 'Manual'; onTipoRiegoChange()"
+            >
+              Manual
+            </button>
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="tipoRiego === 'Automatico'"
+              (click)="tipoRiego = 'Automatico'; onTipoRiegoChange()"
+            >
+              Automático
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12" *ngIf="tipoRiego === 'Automatico'">
+      <div class="card p-4 mb-4 humedad-card">
+        <div class="card-header">
+          <h3><i class="pi pi-sliders-h"></i> Umbral de Humedad</h3>
+          <div class="humidity-status">
+            <span class="humidity-badge" [style.background-color]="getHumedadColor(configuracion!.humedadMinima)">
+              {{ configuracion!.humedadMinima }}% - {{ configuracion!.humedadMaxima }}%
+            </span>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="col-6">
+            <div class="slider-container">
+              <label class="slider-label">
+                <span>Humedad mínima</span>
+                <span class="slider-value">{{ configuracion!.humedadMinima }}%</span>
+              </label>
+              <p-slider
+                [(ngModel)]="configuracion!.humedadMinima"
+                [min]="0"
+                [max]="100"
+                (onSlideEnd)="onHumedadChange()"
+                styleClass="custom-slider"
+              ></p-slider>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="slider-container">
+              <label class="slider-label">
+                <span>Humedad máxima</span>
+                <span class="slider-value">{{ configuracion!.humedadMaxima }}%</span>
+              </label>
+              <p-slider
+                [(ngModel)]="configuracion!.humedadMaxima"
+                [min]="0"
+                [max]="100"
+                (onSlideEnd)="onHumedadChange()"
+                styleClass="custom-slider"
+              ></p-slider>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12" *ngIf="tipoRiego === 'Automatico'">
+      <div class="card p-4 table-card">
+        <div class="card-header">
+          <h3><i class="pi pi-history"></i> Historial de Riegos</h3>
+          <div class="table-actions">
+            <p-button
+              icon="pi pi-refresh"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (onClick)="loadData()"
+              pTooltip="Actualizar datos"
+            ></p-button>
+          </div>
+        </div>
+        <div class="table-container">
+          <p-table [value]="historialRiego" styleClass="enhanced-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Cultivo</th>
+                <th>Fecha de plantación</th>
+                <th>Humedad Actual</th>
+                <th>Último riego</th>
+                <th>Tipo de riego</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr>
+                <td>
+                  <div class="cultivo-info">
+                    <i class="pi pi-leaf cultivo-icon"></i>
+                    <span>{{ item.nombre }}</span>
+                  </div>
+                </td>
+                <td>{{ item.fechaPlantacion | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="humidity-cell">
+                    <span class="humidity-value" [style.color]="getHumedadColor(item.humedad)">
+                      {{ item.humedad }}%
+                    </span>
+                    <div class="humidity-bar">
+                      <div class="humidity-fill"
+                           [style.width.%]="item.humedad"
+                           [style.background-color]="getHumedadColor(item.humedad)">
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="date-info">{{ item.ultimoRiego | date:'dd/MM/yyyy' }}</span>
+                </td>
+                <td>
+                  <p-badge
+                    [value]="item.tipoRiego"
+                    [severity]="item.tipoRiego === 'Automatico' ? 'success' : 'info'"
+                    styleClass="tipo-riego-badge">
+                  </p-badge>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12" *ngIf="tipoRiego === 'Manual'">
+      <div class="card p-4 table-card">
+        <div class="card-header">
+          <h3><i class="pi pi-hand-paper"></i> Control Manual de Riego</h3>
+          <div class="table-actions">
+            <p-button
+              label="Riego de Emergencia"
+              icon="pi pi-exclamation-triangle"
+              severity="warn"
+              size="small"
+              (onClick)="ejecutarRiegoEmergencia()"
+            ></p-button>
+          </div>
+        </div>
+        <div class="table-container">
+          <p-table [value]="riegoManual" styleClass="enhanced-table">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Fecha</th>
+                <th>Zona</th>
+                <th>Humedad Actual</th>
+                <th>Último riego</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item>
+              <tr [class.needs-watering]="needsWatering(item)">
+                <td>{{ item.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="zona-info">
+                    <i class="pi pi-map-marker zona-icon"></i>
+                    <span>{{ item.zona }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="humidity-cell">
+                    <span class="humidity-value" [style.color]="getHumedadColor(item.humedad)">
+                      {{ item.humedad }}%
+                    </span>
+                    <div class="humidity-bar">
+                      <div class="humidity-fill"
+                           [style.width.%]="item.humedad"
+                           [style.background-color]="getHumedadColor(item.humedad)">
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="date-info">{{ item.ultimoRiego | date:'dd/MM/yyyy' }}</span>
+                </td>
+                <td>
+                  <p-badge
+                    [value]="needsWatering(item) ? 'Requiere Riego' : 'Óptimo'"
+                    [severity]="needsWatering(item) ? 'danger' : 'success'"
+                    styleClass="estado-badge">
+                  </p-badge>
+                </td>
+                <td>
+                  <p-button
+                    [label]="riegoEnProceso ? 'Regando...' : 'Regar Ahora'"
+                    [icon]="riegoEnProceso ? 'pi pi-spin pi-spinner' : 'pi pi-play'"
+                    size="small"
+                    [severity]="needsWatering(item) ? 'danger' : 'success'"
+
+                    [disabled]="riegoEnProceso"
+                    styleClass="action-button"
+                  ></p-button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flex justify-content-center align-items-center h-screen loading-container" *ngIf="loading">
+  <div class="loading-content">
+    <p-progressSpinner strokeWidth="3" animationDuration="1s"></p-progressSpinner>
+    <p class="loading-text">Cargando sistema de riego...</p>
+  </div>
+</div>

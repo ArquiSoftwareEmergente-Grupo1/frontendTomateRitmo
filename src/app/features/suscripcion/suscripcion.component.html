@@ -1,0 +1,54 @@
+<p-toast></p-toast>
+<div class="suscripcion-container min-h-screen flex align-items-center justify-content-center p-4"
+     style="background: linear-gradient(135deg, #005F40 0%, #337D50 100%);">
+
+  <div class="surface-card p-6 shadow-2 border-round w-full max-w-6xl" *ngIf="!loading">
+    <div class="text-center mb-6">
+      <h1 class="text-4xl font-bold text-900 mb-2">Select a plan</h1>
+      <p class="text-600">Elige el plan que mejor se adapte a tus necesidades</p>
+    </div>
+
+    <div class="grid">
+      <div class="col-12 md:col-4" *ngFor="let plan of planes">
+        <div class="card h-full flex flex-column"
+             [style]="plan.id === 'basic' ? {'background-color': '#005F40', 'color': 'white'} :
+                      plan.id === 'regular' ? {'background-color': '#9D7C58', 'color': 'white'} :
+                      {'background-color': '#9A5D4E', 'color': 'white'}">
+
+          <div class="text-center p-4 flex-1">
+            <h3 class="text-2xl font-bold mb-3">{{ plan.nombre }}</h3>
+
+            <div class="mb-4">
+              <span class="text-4xl font-bold">${{ plan.precio }}</span>
+              <span class="text-lg">/{{ plan.periodo }}</span>
+            </div>
+
+            <div class="mb-4">
+              <ul class="list-none p-0 m-0 text-left">
+                <li *ngFor="let caracteristica of plan.caracteristicas"
+                    class="flex align-items-center mb-2">
+                  <i class="pi pi-check mr-2"></i>
+                  <span>{{ caracteristica }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="p-4">
+            <p-button
+              label="Seleccionar Plan"
+              (onClick)="selectPlan(plan)"
+              styleClass="w-full p-3"
+              [style]="{'background-color': 'white', 'color': plan.id === 'basic' ? '#005F40' :
+                        plan.id === 'regular' ? '#9D7C58' : '#9A5D4E', 'border-color': 'white'}"
+            ></p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-content-center align-items-center h-screen" *ngIf="loading">
+    <p-progressSpinner></p-progressSpinner>
+  </div>
+</div>

@@ -1,0 +1,220 @@
+<p-toast></p-toast>
+<div class="perfil-container" *ngIf="currentUser">
+  <div class="perfil-header">
+    <div class="header-content">
+      <div class="avatar-section">
+        <div class="user-avatar">
+          <i class="pi pi-user"></i>
+        </div>
+        <button
+          type="button"
+          class="avatar-btn"
+        >
+          <i class="pi pi-camera"></i>
+          <span>Cambiar foto</span>
+        </button>
+      </div>
+
+      <div class="user-info">
+        <h1>{{currentUser.name || 'Usuario'}}</h1>
+        <p class="user-subtitle">{{currentUser.email}}</p>
+        <div class="user-stats">
+          <div class="stat-item">
+            <span class="stat-value">Activo</span>
+            <span class="stat-label">Estado</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{currentUser.country || 'No definido'}}</span>
+            <span class="stat-label">País</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <i class="pi pi-user-edit"></i>
+        Información Personal
+      </h2>
+      <p class="card-description">
+        Administra tu información personal y preferencias de cuenta
+      </p>
+    </div>
+
+    <form [formGroup]="perfilForm" (ngSubmit)="saveProfile()">
+      <div class="profile-form">
+
+        <div class="form-section">
+          <h3 class="section-title">Información Básica</h3>
+
+          <div class="form-field">
+            <label for="name" class="field-label">
+              <i class="pi pi-user"></i>
+              Nombre completo
+            </label>
+            <input
+              id="name"
+              type="text"
+              pInputText
+              formControlName="name"
+              class="form-input"
+              [readonly]="!editing"
+              placeholder="Ingresa tu nombre completo"
+            />
+            <div
+              class="error-message"
+              *ngIf="editing && perfilForm.get('name')?.invalid && perfilForm.get('name')?.touched"
+            >
+              <i class="pi pi-exclamation-triangle"></i>
+              El nombre es requerido (mínimo 2 caracteres)
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="email" class="field-label">
+              <i class="pi pi-envelope"></i>
+              Correo electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              pInputText
+              formControlName="email"
+              class="form-input"
+              [readonly]="!editing"
+              placeholder="tu@email.com"
+            />
+            <div
+              class="error-message"
+              *ngIf="editing && perfilForm.get('email')?.invalid && perfilForm.get('email')?.touched"
+            >
+              <i class="pi pi-exclamation-triangle"></i>
+              Ingresa un email válido
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="section-title">Ubicación</h3>
+
+          <div class="form-field">
+            <label for="country" class="field-label">
+              <i class="pi pi-globe"></i>
+              País
+            </label>
+            <input
+              id="country"
+              type="text"
+              pInputText
+              formControlName="country"
+              class="form-input"
+              [readonly]="!editing"
+              placeholder="Selecciona tu país"
+            />
+            <div
+              class="error-message"
+              *ngIf="editing && perfilForm.get('country')?.invalid && perfilForm.get('country')?.touched"
+            >
+              <i class="pi pi-exclamation-triangle"></i>
+              El país es requerido
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="city" class="field-label">
+              <i class="pi pi-map-marker"></i>
+              Ciudad
+            </label>
+            <input
+              id="city"
+              type="text"
+              pInputText
+              formControlName="city"
+              class="form-input"
+              [readonly]="!editing"
+              placeholder="Ingresa tu ciudad"
+            />
+            <div
+              class="error-message"
+              *ngIf="editing && perfilForm.get('city')?.invalid && perfilForm.get('city')?.touched"
+            >
+              <i class="pi pi-exclamation-triangle"></i>
+              La ciudad es requerida
+            </div>
+          </div>
+        </div>
+
+
+        <div class="form-section">
+          <h3 class="section-title">Seguridad</h3>
+
+          <div class="form-field">
+            <label for="password" class="field-label">
+              <i class="pi pi-lock"></i>
+              Contraseña
+            </label>
+            <div class="password-section">
+              <div class="password-display">
+                <span class="password-dots">••••••••••••</span>
+                <p-button
+                  label="Cambiar"
+                  icon="pi pi-key"
+                  [text]="true"
+                  size="small"
+                  (onClick)="changePassword()"
+                  class="change-password-btn"
+                ></p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <div class="action-group" *ngIf="!editing">
+          <p-button
+            label="Editar Perfil"
+            icon="pi pi-pencil"
+            (onClick)="toggleEdit()"
+            class="edit-btn"
+          ></p-button>
+        </div>
+
+        <div class="action-group" *ngIf="editing">
+          <p-button
+            label="Guardar Cambios"
+            icon="pi pi-check"
+            type="submit"
+            [loading]="loading"
+            [disabled]="!perfilForm.valid"
+            class="save-btn"
+          ></p-button>
+          <p-button
+            label="Cancelar"
+            icon="pi pi-times"
+            type="button"
+            (onClick)="toggleEdit()"
+            class="cancel-btn"
+          ></p-button>
+        </div>
+
+        <div class="danger-zone">
+          <h4 class="danger-title">Zona de Peligro</h4>
+          <p class="danger-description">
+            Una vez que elimines tu cuenta, no podrás recuperarla. Por favor, ten precaución.
+          </p>
+          <p-button
+            label="Eliminar Cuenta"
+            icon="pi pi-trash"
+            severity="danger"
+            [outlined]="true"
+            (onClick)="deleteAccount()"
+            class="delete-btn"
+          ></p-button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

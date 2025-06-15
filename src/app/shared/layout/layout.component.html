@@ -1,0 +1,25 @@
+<div class="layout-wrapper" [ngClass]="{'mobile-layout': isMobile, 'sidebar-open': sidebarVisible}">
+
+  <div class="layout-overlay"
+       [ngClass]="{'active': sidebarVisible && isMobile}"
+       (click)="closeSidebar()">
+  </div>
+
+  <app-sidebar
+    [visible]="sidebarVisible"
+    (visibilityChange)="onSidebarVisibilityChange($event)"
+    >
+  </app-sidebar>
+
+  <div class="layout-main" [ngClass]="{'shifted': sidebarVisible && !isMobile}">
+
+    <app-header (menuClick)="toggleSidebar()"></app-header>
+
+    <div class="layout-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+
+  </div>
+</div>

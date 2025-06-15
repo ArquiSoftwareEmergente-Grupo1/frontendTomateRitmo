@@ -1,0 +1,161 @@
+<p-toast></p-toast>
+<div class="login-container">
+  <div class="login-background">
+    <div class="background-pattern"></div>
+    <div class="floating-elements">
+      <div class="element element-1"></div>
+      <div class="element element-2"></div>
+      <div class="element element-3"></div>
+    </div>
+  </div>
+
+  <div class="login-content" [ngClass]="{'mobile-layout': isMobile}">
+    <div class="login-card fade-in-up">
+
+      <div class="login-header">
+        <div class="logo-section">
+          <img src="https://i.postimg.cc/RZNyjZGf/tomate-ritmo-logo-removebg-preview.png"
+               alt="TomateRitmo"
+               class="logo">
+        </div>
+
+        <div class="header-text">
+          <h1 class="login-title">¡Bienvenido de vuelta!</h1>
+          <p class="login-subtitle">Inicia sesión para gestionar tus cultivos</p>
+        </div>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+        <div class="form-field">
+          <label for="email" class="field-label">
+            <i class="pi pi-envelope"></i>
+            Correo Electrónico
+          </label>
+          <div class="input-container">
+            <input
+              id="email"
+              type="email"
+              pInputText
+              formControlName="email"
+              placeholder="tu@email.com"
+              class="form-input"
+              [class.input-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+
+          </div>
+          <small class="error-message"
+                 *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+            <i class="pi pi-exclamation-circle"></i>
+            Por favor ingresa un email válido
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="password" class="field-label">
+            <i class="pi pi-lock"></i>
+            Contraseña
+          </label>
+          <div class="input-container">
+            <p-password
+              id="password"
+              formControlName="password"
+              [toggleMask]="true"
+              [feedback]="false"
+              placeholder="Tu contraseña"
+              styleClass="w-full password-input"
+              inputStyleClass="form-input"
+              [class.input-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            </p-password>
+          </div>
+          <small class="error-message"
+                 *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+            <i class="pi pi-exclamation-circle"></i>
+            La contraseña debe tener al menos 6 caracteres
+          </small>
+        </div>
+
+        <div class="form-options">
+          <div class="remember-section">
+            <p-checkbox
+              id="rememberMe"
+              formControlName="rememberMe"
+              [binary]="true"
+              styleClass="custom-checkbox">
+            </p-checkbox>
+            <label for="rememberMe" class="remember-label">Recordarme</label>
+          </div>
+
+          <a class="forgot-link" (click)="forgotPassword()">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+
+        <p-button
+          label="Iniciar Sesión"
+          type="submit"
+          [loading]="loading"
+          [disabled]="!loginForm.valid"
+          styleClass="login-button"
+          loadingIcon="pi pi-spin pi-spinner">
+        </p-button>
+
+        <div class="demo-section">
+          <p class="demo-label">Credenciales de prueba:</p>
+          <div class="demo-credentials">
+            <p class="demo-credential">
+              <strong>Email:</strong> {{ demoCredentials.email }}
+            </p>
+            <p class="demo-credential">
+              <strong>Contraseña:</strong> {{ demoCredentials.password }}
+            </p>
+          </div>
+          <p-button
+            label="Usar Credenciales Demo"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            (onClick)="useDemoCredentials()"
+            styleClass="demo-button">
+          </p-button>
+        </div>
+      </form>
+
+      <div class="social-section">
+        <div class="divider-section">
+          <p-divider align="center" type="solid">
+            <span class="divider-text">O continúa con</span>
+          </p-divider>
+        </div>
+
+        <div class="social-buttons">
+          <p-button
+            label="Google"
+            icon="pi pi-google"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="loginWithGoogle()"
+            styleClass="social-button google-button">
+          </p-button>
+
+          <p-button
+            label="Facebook"
+            icon="pi pi-facebook"
+            severity="info"
+            [outlined]="true"
+            (onClick)="loginWithFacebook()"
+            styleClass="social-button facebook-button">
+          </p-button>
+        </div>
+      </div>
+
+      <div class="register-section">
+        <p class="register-text">
+          ¿No tienes una cuenta?
+          <a class="register-link" (click)="navigateToRegister()">
+            Regístrate aquí
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

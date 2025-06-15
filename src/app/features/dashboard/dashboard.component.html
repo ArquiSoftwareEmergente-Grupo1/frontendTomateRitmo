@@ -1,0 +1,361 @@
+<p-toast></p-toast>
+<div class="dashboard-container" [ngClass]="{'mobile-layout': isMobile}">
+
+  <div class="dashboard-header fade-in-up">
+    <div class="header-content">
+      <div class="header-title">
+        <h1 class="dashboard-title">
+          <i class="pi pi-home"></i>
+          Panel de Control
+        </h1>
+        <p class="dashboard-subtitle">
+          Monitoreo en tiempo real de tus cultivos
+        </p>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ estadisticas.totalCultivos }}</span>
+          <span class="stat-label">Cultivos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ estadisticas.alertasActivas }}</span>
+          <span class="stat-label">Alertas</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ estadisticas.eficienciaRiego }}%</span>
+          <span class="stat-label">Eficiencia</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="loading-container" *ngIf="loading">
+    <div class="loading-content">
+      <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+      <p class="loading-text">Cargando datos del dashboard...</p>
+    </div>
+  </div>
+
+  <div class="dashboard-content" *ngIf="!loading && dashboardData">
+
+
+    <section class="metrics-section fade-in-up">
+      <div class="metrics-grid">
+
+
+        <div class="metric-card humidity-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <i class="pi pi-map"></i>
+            </div>
+            <div class="metric-info">
+              <h3>Humedad del Suelo</h3>
+              <p class="metric-description">Nivel actual de humedad</p>
+            </div>
+          </div>
+
+          <div class="metric-content">
+            <div class="knob-container">
+              <p-knob
+                [(ngModel)]="dashboardData.humedadActual"
+                [size]="isMobile ? 100 : 120"
+                [strokeWidth]="8"
+                valueColor="#42A5F5"
+                rangeColor="#E3F2FD"
+                textColor="#1976D2"
+                [readonly]="true">
+              </p-knob>
+            </div>
+
+            <div class="metric-details">
+              <div class="metric-value">{{ dashboardData.humedadActual }}%</div>
+              <p-badge
+                [value]="dashboardData.humedadActual > 60 ? 'Óptimo' : dashboardData.humedadActual > 30 ? 'Moderado' : 'Bajo'"
+                [severity]="getSeverityByValue(dashboardData.humedadActual, 0, 100)">
+              </p-badge>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="metric-card temperature-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <i class="pi pi-sun"></i>
+            </div>
+            <div class="metric-info">
+              <h3>Temperatura</h3>
+              <p class="metric-description">Temperatura ambiental</p>
+            </div>
+          </div>
+
+          <div class="metric-content">
+            <div class="knob-container">
+              <p-knob
+                [(ngModel)]="dashboardData.temperaturaActual"
+                [size]="isMobile ? 100 : 120"
+                [strokeWidth]="8"
+                valueColor="#FF7043"
+                rangeColor="#FFF3E0"
+                textColor="#E64A19"
+                [readonly]="true"
+                [max]="50">
+              </p-knob>
+            </div>
+
+            <div class="metric-details">
+              <div class="metric-value">{{ dashboardData.temperaturaActual }}°C</div>
+              <p-badge
+                [value]="dashboardData.temperaturaActual > 25 ? 'Cálido' : dashboardData.temperaturaActual > 15 ? 'Templado' : 'Frío'"
+                [severity]="getSeverityByValue(dashboardData.temperaturaActual, 10, 40)">
+              </p-badge>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-card soil-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <i class="pi pi-chart-line"></i>
+            </div>
+            <div class="metric-info">
+              <h3>Calidad del Suelo</h3>
+              <p class="metric-description">Análisis de nutrientes</p>
+            </div>
+          </div>
+
+          <div class="metric-content">
+            <div class="soil-metrics">
+              <div class="soil-item">
+                <span class="soil-label">pH</span>
+                <div class="soil-value-container">
+                  <span class="soil-value">{{ dashboardData.calidadSuelo.ph }}</span>
+                  <div class="soil-bar">
+                    <div class="soil-progress" [style.width.%]="(dashboardData.calidadSuelo.ph / 14) * 100"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="soil-item">
+                <span class="soil-label">EC</span>
+                <div class="soil-value-container">
+                  <span class="soil-value">{{ dashboardData.calidadSuelo.ec }}</span>
+                  <div class="soil-bar">
+                    <div class="soil-progress" [style.width.%]="(dashboardData.calidadSuelo.ec / 3) * 100"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="soil-status">
+              <p-badge
+                [value]="dashboardData.calidadSuelo.estado"
+                severity="success"
+                [style]="{'background-color': getEstadoColor(dashboardData.calidadSuelo.estado)}">
+              </p-badge>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="metric-card light-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <i class="pi pi-lightbulb"></i>
+            </div>
+            <div class="metric-info">
+              <h3>Luminosidad</h3>
+              <p class="metric-description">Intensidad lumínica</p>
+            </div>
+          </div>
+
+          <div class="metric-content">
+            <div class="light-display">
+              <div class="light-value">
+                {{ (dashboardData.luminosidad.intensidad / 1000).toFixed(1) }}k
+                <span class="light-unit">lux</span>
+              </div>
+
+              <div class="light-indicator">
+                <div class="light-bar">
+                  <div class="light-progress"
+                       [style.width.%]="(dashboardData.luminosidad.intensidad / 30000) * 100">
+                  </div>
+                </div>
+                <span class="light-status">{{ dashboardData.luminosidad.estado }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts-section fade-in-up">
+      <div class="charts-grid">
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>
+              <i class="pi pi-chart-line"></i>
+              Condiciones Ambientales
+            </h3>
+            <p>Evolución de humedad y temperatura</p>
+          </div>
+
+          <div class="chart-container">
+            <p-chart
+              type="line"
+              [data]="ambientalChartData"
+              [options]="isMobile ? mobileChartOptions : chartOptions"
+              [height]="isMobile ? '250px' : '300px'">
+            </p-chart>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>
+              <i class="pi pi-chart-bar"></i>
+              Análisis del Suelo
+            </h3>
+            <p>Niveles de nutrientes y pH</p>
+          </div>
+
+          <div class="chart-container">
+            <p-chart
+              type="radar"
+              [data]="suplementosChartData"
+              [options]="isMobile ? mobileChartOptions : chartOptions"
+              [height]="isMobile ? '250px' : '300px'">
+            </p-chart>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls-section fade-in-up">
+      <div class="controls-grid">
+
+        <div class="control-card irrigation-card">
+          <div class="control-header">
+            <div class="control-icon">
+              <i class="pi pi-sync"></i>
+            </div>
+            <div class="control-info">
+              <h3>Sistema de Riego</h3>
+              <p>Control automático/manual</p>
+            </div>
+          </div>
+
+          <div class="control-content">
+            <div class="irrigation-status">
+              <span class="current-mode">
+                Modo: {{ dashboardData.tipoRiego }}
+              </span>
+
+              <div class="mode-indicator"
+                   [ngClass]="{'active': dashboardData.tipoRiego === 'Automatico'}">
+                <i class="pi" [ngClass]="dashboardData.tipoRiego === 'Automatico' ? 'pi-play' : 'pi-pause'"></i>
+              </div>
+            </div>
+
+            <p-button
+              [label]="'Cambiar a ' + (dashboardData.tipoRiego === 'Manual' ? 'Automático' : 'Manual')"
+              [icon]="dashboardData.tipoRiego === 'Manual' ? 'pi pi-play' : 'pi pi-pause'"
+              (onClick)="toggleRiegoMode()"
+              styleClass="w-full control-button"
+              [severity]="dashboardData.tipoRiego === 'Manual' ? 'success' : 'secondary'">
+            </p-button>
+          </div>
+        </div>
+
+        <div class="control-card detection-card">
+          <div class="control-header">
+            <div class="control-icon">
+              <i class="pi pi-eye"></i>
+            </div>
+            <div class="control-info">
+              <h3>Última Detección</h3>
+              <p>Análisis visual más reciente</p>
+            </div>
+          </div>
+
+          <div class="control-content">
+            <div class="detection-content">
+              <div class="detection-image">
+                <img
+                  [src]="dashboardData.ultimaDeteccionVisual.imagen"
+                  alt="Última detección"
+                  class="detection-img">
+                <div class="detection-overlay">
+                  <i class="pi pi-search-plus"></i>
+                </div>
+              </div>
+
+              <div class="detection-info">
+                <h4 class="detection-title">
+                  {{ dashboardData.ultimaDeteccionVisual.diagnostico }}
+                </h4>
+                <p class="detection-description">
+                  {{ dashboardData.ultimaDeteccionVisual.anomalia }}
+                </p>
+
+                <p-button
+                  label="Ver Análisis"
+                  icon="pi pi-external-link"
+                  [text]="true"
+                  size="small"
+                  styleClass="detection-button">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-card system-card">
+          <div class="control-header">
+            <div class="control-icon">
+              <i class="pi pi-info-circle"></i>
+            </div>
+            <div class="control-info">
+              <h3>Estado del Sistema</h3>
+              <p>Información general</p>
+            </div>
+          </div>
+
+          <div class="control-content">
+            <div class="system-stats">
+              <div class="system-item">
+                <i class="pi pi-clock"></i>
+                <div class="system-details">
+                  <span class="system-label">Última actualización</span>
+                  <span class="system-value">{{ estadisticas.ultimaActualizacion | date:'short' }}</span>
+                </div>
+              </div>
+
+              <div class="system-item">
+                <i class="pi pi-wifi"></i>
+                <div class="system-details">
+                  <span class="system-label">Conectividad</span>
+                  <span class="system-value">
+                    <p-badge value="Online" severity="success"></p-badge>
+                  </span>
+                </div>
+              </div>
+
+              <div class="system-item">
+                <i class="pi pi-cog"></i>
+                <div class="system-details">
+                  <span class="system-label">Sensores</span>
+                  <span class="system-value">8/8 Activos</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

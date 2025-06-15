@@ -1,0 +1,168 @@
+<p-toast></p-toast>
+<div class="pago-container min-h-screen flex align-items-center justify-content-center p-4"
+     style="background: linear-gradient(135deg, #005F40 0%, #337D50 100%);">
+
+  <div class="surface-card p-6 shadow-2 border-round w-full max-w-5xl" *ngIf="selectedPlan">
+    <div class="text-center mb-6">
+      <h1 class="text-4xl font-bold text-900 mb-2">Enter your details</h1>
+    </div>
+
+    <div class="grid">
+      <div class="col-12 lg:col-8">
+        <form [formGroup]="pagoForm" (ngSubmit)="onSubmit()">
+          <div class="grid">
+            <div class="col-12">
+              <div class="field">
+                <label for="numeroTarjeta" class="block text-900 font-medium mb-2">Card number:</label>
+                <input
+                  id="numeroTarjeta"
+                  type="text"
+                  pInputText
+                  placeholder="1234 5678 9012 3456"
+                  class="w-full"
+                  (input)="formatCardNumber($event)"
+                  [class.ng-invalid]="pagoForm.get('numeroTarjeta')?.invalid && pagoForm.get('numeroTarjeta')?.touched"
+                />
+                <small
+                  class="p-error block"
+                  *ngIf="pagoForm.get('numeroTarjeta')?.invalid && pagoForm.get('numeroTarjeta')?.touched"
+                >
+                  Número de tarjeta debe tener 16 dígitos
+                </small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="field">
+                <label for="fechaVencimiento" class="block text-900 font-medium mb-2">Due date:</label>
+                <input
+                  id="fechaVencimiento"
+                  type="text"
+                  pInputText
+                  placeholder="MM / AA"
+                  class="w-full"
+                  (input)="formatExpiryDate($event)"
+                  [class.ng-invalid]="pagoForm.get('fechaVencimiento')?.invalid && pagoForm.get('fechaVencimiento')?.touched"
+                />
+                <small
+                  class="p-error block"
+                  *ngIf="pagoForm.get('fechaVencimiento')?.invalid && pagoForm.get('fechaVencimiento')?.touched"
+                >
+                  Formato: MM/AA
+                </small>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="field">
+                <label for="codigoSeguridad" class="block text-900 font-medium mb-2">Security code:</label>
+                <input
+                  id="codigoSeguridad"
+                  type="text"
+                  pInputText
+                  placeholder="CVC"
+                  class="w-full"
+                  (input)="formatCVC($event)"
+                  [class.ng-invalid]="pagoForm.get('codigoSeguridad')?.invalid && pagoForm.get('codigoSeguridad')?.touched"
+                />
+                <small
+                  class="p-error block"
+                  *ngIf="pagoForm.get('codigoSeguridad')?.invalid && pagoForm.get('codigoSeguridad')?.touched"
+                >
+                  CVC debe tener 3 o 4 dígitos
+                </small>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="field">
+                <label for="email" class="block text-900 font-medium mb-2">Email:</label>
+                <input
+                  id="email"
+                  type="email"
+                  pInputText
+                  formControlName="email"
+                  placeholder="tu-email@ejemplo.com"
+                  class="w-full"
+                  [class.ng-invalid]="pagoForm.get('email')?.invalid && pagoForm.get('email')?.touched"
+                />
+                <small
+                  class="p-error block"
+                  *ngIf="pagoForm.get('email')?.invalid && pagoForm.get('email')?.touched"
+                >
+                  Email es requerido y debe ser válido
+                </small>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="field">
+                <label for="nombre" class="block text-900 font-medium mb-2">Name:</label>
+                <input
+                  id="nombre"
+                  type="text"
+                  pInputText
+                  formControlName="nombre"
+                  placeholder="Tu nombre completo"
+                  class="w-full"
+                  [class.ng-invalid]="pagoForm.get('nombre')?.invalid && pagoForm.get('nombre')?.touched"
+                />
+                <small
+                  class="p-error block"
+                  *ngIf="pagoForm.get('nombre')?.invalid && pagoForm.get('nombre')?.touched"
+                >
+                  Nombre es requerido
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <p-button
+            label="Pay"
+            type="submit"
+            [loading]="loading"
+            [disabled]="!pagoForm.valid"
+            styleClass="w-full p-3 text-xl mt-4"
+            [style]="{'background-color': '#005F40', 'border-color': '#005F40'}"
+          ></p-button>
+        </form>
+      </div>
+
+      <div class="col-12 lg:col-4">
+        <div class="card h-full"
+             [style]="selectedPlan.id === 'basic' ? {'background-color': '#005F40', 'color': 'white'} :
+                      selectedPlan.id === 'regular' ? {'background-color': '#9D7C58', 'color': 'white'} :
+                      {'background-color': '#9A5D4E', 'color': 'white'}">
+
+          <div class="text-center p-4">
+            <h3 class="text-2xl font-bold mb-3">{{ selectedPlan.nombre }}</h3>
+
+            <div class="mb-4">
+              <span class="text-4xl font-bold">${{ selectedPlan.precio }}</span>
+              <span class="text-lg">/{{ selectedPlan.periodo }}</span>
+            </div>
+
+            <div class="text-left">
+              <ul class="list-none p-0 m-0">
+                <li *ngFor="let caracteristica of selectedPlan.caracteristicas"
+                    class="flex align-items-center mb-2">
+                  <i class="pi pi-check mr-2"></i>
+                  <span>{{ caracteristica }}</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-4">
+              <p-button
+                label="Register"
+                styleClass="w-full"
+                [style]="{'background-color': 'white', 'color': selectedPlan.id === 'basic' ? '#005F40' :
+                          selectedPlan.id === 'regular' ? '#9D7C58' : '#9A5D4E', 'border-color': 'white'}"
+              ></p-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,318 @@
+<p-toast></p-toast>
+<div class="historial-container" [ngClass]="{'mobile-layout': isMobile}">
+
+  <div class="historial-header fade-in-up">
+    <div class="header-content">
+      <div class="header-title">
+        <h1 class="page-title">
+          <i class="pi pi-history"></i>
+          Historial de Eventos
+        </h1>
+        <p class="page-subtitle">
+          Registro completo de actividades y datos ambientales
+        </p>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-value">{{ estadisticas.totalEventos }}</div>
+          <div class="stat-label">Total Eventos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ estadisticas.eventosHoy }}</div>
+          <div class="stat-label">Hoy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">+{{ estadisticas.tendenciaSemanal }}%</div>
+          <div class="stat-label">Esta Semana</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-section" *ngIf="loading">
+    <div class="loading-content">
+      <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+      <p class="loading-text">Cargando historial...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" *ngIf="!loading">
+
+    <p-tabView styleClass="historial-tabs">
+
+      <!-- Tab: Eventos -->
+      <p-tabPanel header="Registro de Eventos" leftIcon="pi pi-list">
+
+        <!-- Filters Section -->
+        <div class="filters-section fade-in-up">
+          <div class="filters-content">
+            <div class="filters-grid">
+
+              <div class="filter-item">
+                <label class="filter-label">Rango de Fechas</label>
+                <p-calendar
+                  [(ngModel)]="rangoFechas"
+                  selectionMode="range"
+                  [showIcon]="true"
+                  placeholder="Seleccionar rango"
+                  dateFormat="dd/mm/yy"
+                  (onSelect)="onFiltroChange()"
+                  styleClass="w-full range-calendar">
+                </p-calendar>
+              </div>
+
+              <div class="filter-item">
+                <label class="filter-label">Tipo de Evento</label>
+                <p-dropdown
+                  [options]="tiposEvento"
+                  [(ngModel)]="tipoEventoSeleccionado"
+                  placeholder="Todos los tipos"
+                  optionLabel="label"
+                  optionValue="value"
+                  [showClear]="true"
+                  (onChange)="onFiltroChange()"
+                  styleClass="w-full">
+                </p-dropdown>
+              </div>
+
+              <div class="filter-item">
+                <label class="filter-label">Zona</label>
+                <p-dropdown
+                  [options]="zonas"
+                  [(ngModel)]="zonaSeleccionada"
+                  placeholder="Todas las zonas"
+                  optionLabel="label"
+                  optionValue="value"
+                  [showClear]="true"
+                  (onChange)="onFiltroChange()"
+                  styleClass="w-full">
+                </p-dropdown>
+              </div>
+
+              <div class="filter-actions">
+                <p-button
+                  label="Limpiar Filtros"
+                  icon="pi pi-filter-slash"
+                  severity="secondary"
+                  [outlined]="true"
+                  (onClick)="clearFilters()">
+                </p-button>
+
+                <p-button
+                  label="Exportar"
+                  icon="pi pi-download"
+                  [loading]="exportando"
+                  (onClick)="exportarDatos()">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Events Table -->
+        <div class="events-section fade-in-up">
+          <div class="events-card">
+            <div class="card-header">
+              <h3>
+                <i class="pi pi-list"></i>
+                Eventos Registrados
+              </h3>
+              <p-chip
+                [label]="'Total: ' + eventosFiltrados.length + ' eventos'"
+                icon="pi pi-info-circle">
+              </p-chip>
+            </div>
+
+            <p-table
+              [value]="eventosFiltrados"
+              [paginator]="true"
+              [rows]="10"
+              [responsive]="true"
+              styleClass="events-table">
+
+              <ng-template pTemplate="header">
+                <tr class="table-header">
+                  <th pSortableColumn="fecha">
+                    <div class="header-content">
+                      <span>Fecha</span>
+                      <p-sortIcon field="fecha"></p-sortIcon>
+                    </div>
+                  </th>
+                  <th pSortableColumn="evento">
+                    <div class="header-content">
+                      <span>Evento</span>
+                      <p-sortIcon field="evento"></p-sortIcon>
+                    </div>
+                  </th>
+                  <th pSortableColumn="zona">
+                    <div class="header-content">
+                      <span>Zona</span>
+                      <p-sortIcon field="zona"></p-sortIcon>
+                    </div>
+                  </th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-evento let-rowIndex="rowIndex">
+                <tr class="table-row" [class.even-row]="rowIndex % 2 === 0">
+                  <td class="date-cell">
+                    <div class="date-content">
+                      <span class="date-value">{{ evento.fecha | date:'dd/MM/yyyy' }}</span>
+                      <span class="time-value">{{ evento.fecha | date:'HH:mm' }}</span>
+                    </div>
+                  </td>
+
+                  <td class="event-cell">
+                    <div class="event-content">
+                      <i [class]="getEventIcon(evento.evento)"
+                         [style.color]="getEventColor(evento.evento)"></i>
+                      <span class="event-name">{{ evento.evento }}</span>
+                    </div>
+                  </td>
+
+                  <td class="zone-cell">
+                    <p-chip [label]="evento.zona" styleClass="zone-chip"></p-chip>
+                  </td>
+
+                  <td class="status-cell">
+                    <p-badge
+                      value="Completado"
+                      [severity]="getEventSeverity(evento.evento)" >
+                    </p-badge>
+                  </td>
+
+                  <td class="actions-cell">
+                    <p-button
+                      icon="pi pi-eye"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      severity="info"
+                      (onClick)="verDetalleEvento(evento)"
+                      pTooltip="Ver detalles">
+                    </p-button>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5" class="empty-message">
+                    <div class="empty-state">
+                      <i class="pi pi-info-circle empty-icon"></i>
+                      <h3>No se encontraron eventos</h3>
+                      <p>Intenta ajustar los filtros de búsqueda</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Tab: Gráficos -->
+      <p-tabPanel header="Datos Ambientales" leftIcon="pi pi-chart-line">
+
+        <div class="charts-section fade-in-up">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>
+                <i class="pi pi-chart-line"></i>
+                Evolución Ambiental
+              </h3>
+              <p>Monitoreo de condiciones ambientales en tiempo real</p>
+            </div>
+
+            <div class="chart-container" *ngIf="datosGrafica">
+              <p-chart
+                type="line"
+                [data]="datosGrafica"
+                [options]="isMobile ? mobileChartOptions : chartOptions"
+                [height]="isMobile ? '300px' : '400px'">
+              </p-chart>
+            </div>
+
+            <div class="chart-actions">
+              <p-button
+                label="Exportar PDF"
+                icon="pi pi-file-pdf"
+                severity="danger"
+                [outlined]="true"
+                (onClick)="exportarPDF()">
+              </p-button>
+
+              <p-button
+                label="Exportar Excel"
+                icon="pi pi-file-excel"
+                severity="success"
+                [outlined]="true"
+                (onClick)="exportarExcel()">
+              </p-button>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Tab: Timeline -->
+      <p-tabPanel header="Cronología" leftIcon="pi pi-clock">
+
+        <div class="timeline-section fade-in-up">
+          <div class="timeline-header">
+            <h3>Timeline de Eventos</h3>
+            <p>Cronología visual de las actividades más recientes</p>
+          </div>
+
+          <div class="timeline-container" *ngIf="timelineEvents.length > 0">
+            <p-timeline
+              [value]="timelineEvents"
+              align="alternate"
+              styleClass="custom-timeline">
+
+              <ng-template pTemplate="marker" let-event>
+                <div class="timeline-marker" [style.background-color]="event.color">
+                  <i [class]="event.icon"></i>
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="content" let-event let-i="index">
+                <div class="timeline-content">
+                  <div class="event-card" (click)="verDetalleEvento(event.evento)">
+                    <div class="event-header">
+                      <h4 class="event-title">{{ event.evento.evento }}</h4>
+                      <span class="event-date">{{ event.date }}</span>
+                    </div>
+
+                    <div class="event-body">
+                      <div class="event-details">
+                        <div class="event-info-row">
+                          <i class="pi pi-map-marker"></i>
+                          <span>{{ event.evento.zona }}</span>
+                        </div>
+                        <div class="event-info-row">
+                          <i class="pi pi-clock"></i>
+                          <span>{{ event.evento.fecha | date:'HH:mm' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </p-timeline>
+          </div>
+
+          <div class="empty-timeline" *ngIf="timelineEvents.length === 0">
+            <i class="pi pi-history empty-icon"></i>
+            <h3>Sin eventos recientes</h3>
+            <p>No hay eventos para mostrar en el período seleccionado</p>
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+</div>
