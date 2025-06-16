@@ -67,10 +67,12 @@
                     accept="image/*"
                     maxFileSize="10000000"
                     chooseLabel="Seleccionar Imagen"
-                    (onUpload)="onFileUpload($event)"
+                    (onSelect)="onFileUpload($event)"
                     [auto]="true"
+                    customUpload="true"
                     styleClass="upload-button">
                   </p-fileUpload>
+
                 </div>
               </div>
 

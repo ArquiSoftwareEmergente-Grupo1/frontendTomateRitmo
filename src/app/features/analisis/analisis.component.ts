@@ -143,18 +143,20 @@ export class AnalisisVisualComponent implements OnInit {
   }
 
   onFileUpload(event: any) {
-    const file = event.files[0];
+    const file = event.files?.[0];
     if (file) {
       this.analizarImagen(file);
     }
   }
 
   analizarImagen(file: File) {
+
     this.analizando = true;
     this.mostrarConfirmacion = false;
 
     this.analisisService.analizarImagen(file).subscribe({
       next: (resultado) => {
+
         this.ultimoAnalisis = resultado;
         this.analizando = false;
         this.mostrarConfirmacion = true;
@@ -165,7 +167,7 @@ export class AnalisisVisualComponent implements OnInit {
         }
 
         this.messageService.add({
-          severity: resultado.anomalia === 'Sin anomalías detectadas' ? 'success' : 'warning',
+          severity: resultado.anomalia === 'healthy' ? 'success' : 'warn',
           summary: 'Análisis Completado',
           detail: `${resultado.diagnostico} - Confianza: ${(resultado.confianza * 100).toFixed(0)}%`,
           life: 5000
@@ -174,6 +176,7 @@ export class AnalisisVisualComponent implements OnInit {
         this.loadEstadisticas();
       },
       error: (error) => {
+
         this.analizando = false;
         this.messageService.add({
           severity: 'error',
@@ -183,6 +186,7 @@ export class AnalisisVisualComponent implements OnInit {
       }
     });
   }
+
 
   confirmarDiagnostico() {
     if (this.ultimoAnalisis) {

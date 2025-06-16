@@ -13,6 +13,7 @@ import {AnalisisResultado} from '../../interfaces/analisis/analisis-resultado.in
 })
 export class AnalisisService {
   private baseUrl = environment.apiUrl;
+  private iaUrl = environment.iaUrl;
 
   constructor(
     private http: HttpClient,
@@ -61,60 +62,87 @@ export class AnalisisService {
   }
 
   analizarImagen(imagen: File): Observable<AnalisisResultado> {
-    const imageUrl = URL.createObjectURL(imagen);
+    const formData = new FormData();
+    formData.append('image', imagen);  // importante: usar la clave 'image'
 
-    const anomalias = [
-      'Mancha foliar por Alternaria solani',
-      'Infestación de pulgones (Aphis gossypii)',
-      'Deficiencia nutricional de Nitrógeno',
-      'Virus del mosaico del tomate',
-      'Sin anomalías detectadas'
-    ];
+    return this.http.post<any>(`${this.iaUrl}/predict`, formData).pipe(
+      map(respuesta => {
+        const diagnostico = respuesta.class === 'healthy' || respuesta.class === 'Healthy'
+          ? 'Cultivo saludable'
+          : 'Anomalía detectada';
 
-    const recomendacionesPorAnomalia = {
-      'Mancha foliar por Alternaria solani': [
-        'Aplicar fungicida orgánico',
-        'Mejorar ventilación del cultivo',
-        'Reducir humedad ambiental'
-      ],
-      'Infestación de pulgones (Aphis gossypii)': [
-        'Aplicar insecticida natural',
-        'Introducir enemigos naturales',
-        'Revisar riego y nutrición'
-      ],
-      'Deficiencia nutricional de Nitrógeno': [
-        'Aplicar fertilizante rico en nitrógeno',
-        'Ajustar pH del suelo',
-        'Mejorar drenaje del cultivo'
-      ],
-      'Virus del mosaico del tomate': [
-        'Eliminar plantas infectadas',
-        'Controlar vectores de transmisión',
-        'Desinfectar herramientas'
-      ],
-      'Sin anomalías detectadas': [
-        'Mantener las condiciones actuales',
-        'Continuar con el monitoreo regular'
-      ]
-    };
+        const recomendacionesPorAnomalia: Record<string, string[]> = {
+          'Bacterial_spot': [
+            'Aplicar fungicida de cobre',
+            'Evitar riego por aspersión',
+            'Eliminar hojas afectadas'
+          ],
+          'Early_blight': [
+            'Mejorar ventilación del cultivo',
+            'Aplicar fungicida sistémico',
+            'Rotar cultivos'
+          ],
+          'Late_blight': [
+            'Aplicar fungicida específico para tizón tardío',
+            'Eliminar plantas infectadas',
+            'Controlar humedad'
+          ],
+          'Leaf_Mold': [
+            'Usar variedades resistentes',
+            'Aplicar tratamiento preventivo',
+            'Evitar exceso de humedad'
+          ],
+          'Septoria_leaf_spot': [
+            'Eliminar hojas afectadas',
+            'Aplicar fungicida con clorotalonil',
+            'Evitar salpicaduras de agua'
+          ],
+          'Spider_mites': [
+            'Usar insecticidas biológicos',
+            'Mejorar control ambiental',
+            'Introducir depredadores naturales'
+          ],
+          'Target_Spot': [
+            'Eliminar hojas viejas',
+            'Controlar el riego',
+            'Usar productos autorizados'
+          ],
+          'Tomato_Yellow_Leaf_Curl_Virus': [
+            'Eliminar plantas infectadas',
+            'Controlar la mosca blanca',
+            'Utilizar mallas anti-insectos'
+          ],
+          'Tomato_mosaic_virus': [
+            'Desinfectar herramientas',
+            'Eliminar plantas afectadas',
+            'Evitar el contacto humano prolongado'
+          ],
+          'healthy': [
+            'Mantener las condiciones actuales',
+            'Continuar con el monitoreo regular'
+          ]
+        };
 
-    const anomaliaSeleccionada = anomalias[Math.floor(Math.random() * anomalias.length)];
-    const esSaludable = anomaliaSeleccionada === 'Sin anomalías detectadas';
+        const anomalia = respuesta.class in recomendacionesPorAnomalia
+          ? respuesta.class
+          : 'healthy';
 
-    const resultado: Omit<AnalisisResultado, 'id'> = {
-      imagen: imageUrl,
-      diagnostico: esSaludable ? 'Cultivo saludable' : 'Anomalía detectada',
-      anomalia: anomaliaSeleccionada,
-      confianza: Math.random() * (0.95 - 0.75) + 0.75,
-      recomendaciones: recomendacionesPorAnomalia[anomaliaSeleccionada as keyof typeof recomendacionesPorAnomalia],
-      fechaAnalisis: new Date().toISOString(),
-      confirmado: false
-    };
+        const resultado: AnalisisResultado = {
+          id: '', // Placeholder for id
+          imagen: URL.createObjectURL(imagen),
+          diagnostico,
+          anomalia,
+          confianza: respuesta.confidence,
+          recomendaciones: recomendacionesPorAnomalia[anomalia],
+          fechaAnalisis: new Date().toISOString(),
+          confirmado: false
+        };
 
-    return this.http.post<AnalisisResultado>(`${this.baseUrl}/analisisResultados`, resultado)
-      .pipe(
-        catchError(this.handleError)
-      );
+        // Puedes guardarlo en tu backend si lo deseas
+        return resultado;
+      }),
+      catchError(this.handleError)
+    );
   }
 
   getAnalisisResultados(): Observable<AnalisisResultado[]> {
