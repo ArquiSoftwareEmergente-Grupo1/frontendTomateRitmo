@@ -1,9 +1,9 @@
 export interface RegisterRequest {
   name: string;
-  lastName?: string;
+  lastName: string;
   email: string;
   password: string;
-  country?: string;
-  city?: string;
+  country: string;
+  city: string;
   acceptTerms: boolean;
 }
