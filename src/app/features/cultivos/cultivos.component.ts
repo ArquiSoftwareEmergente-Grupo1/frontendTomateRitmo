@@ -6,6 +6,7 @@ import { CultivosService } from '../../core/services/cultivos/cultivos.service';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Tooltip } from 'primeng/tooltip';
 import {DatePipe, NgClass, NgIf, NgForOf, SlicePipe} from '@angular/common';
 import { TableModule } from 'primeng/table';
@@ -28,6 +29,7 @@ import {Toast} from 'primeng/toast';
     InputText,
     ReactiveFormsModule,
     Dialog,
+    ConfirmDialog,
     Tooltip,
     PrimeTemplate,
     DatePipe,
@@ -45,6 +47,7 @@ import {Toast} from 'primeng/toast';
     Paginator,
     Toast
   ],
+  providers: [ConfirmationService],
   styleUrls: ['./cultivos.component.css']
 })
 export class CultivosComponent implements OnInit {
@@ -77,10 +80,11 @@ export class CultivosComponent implements OnInit {
   ];
 
   fases = [
-    { label: 'Germinación', value: 'Sprouting' },
-    { label: 'Floración', value: 'Flowering' },
-    { label: 'Fructificación', value: 'Fruiting' },
-    { label: 'Maduración', value: 'Ripening' }
+    { label: 'Germinación', value: 'GERMINACION' },
+    { label: 'Crecimiento Vegetativo', value: 'CRECIMIENTO_VEGETATIVO' },
+    { label: 'Floración', value: 'FLORACION' },
+    { label: 'Fructificación', value: 'FRUCTIFICACION' },
+    { label: 'Maduración', value: 'MADURACION' }
   ];
 
   viewMode: 'cards' | 'table' = 'cards';
@@ -114,7 +118,7 @@ export class CultivosComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.minLength(2)]],
       sector: ['', [Validators.required]],
       fechaPlantacion: [new Date(), [Validators.required]],
-      faseFenologica: ['Sprouting', [Validators.required]]
+      faseFenologica: ['GERMINACION', [Validators.required]]
     });
   }
 
@@ -172,7 +176,7 @@ export class CultivosComponent implements OnInit {
     this.selectedCultivo = null;
     this.cultivoForm.reset({
       fechaPlantacion: new Date(),
-      faseFenologica: 'Sprouting'
+      faseFenologica: 'GERMINACION'
     });
     this.displayDialog = true;
   }
@@ -254,6 +258,7 @@ export class CultivosComponent implements OnInit {
       header: 'Confirmar Eliminación',
       icon: 'pi pi-exclamation-triangle',
       acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
       accept: () => {
         this.cultivosService.deleteCultivo(cultivo.id).subscribe({
           next: (success) => {
@@ -265,9 +270,16 @@ export class CultivosComponent implements OnInit {
                 summary: 'Éxito',
                 detail: 'Cultivo eliminado correctamente'
               });
+            } else {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'No se pudo eliminar el cultivo'
+              });
             }
           },
           error: (error) => {
+            console.error('Error al eliminar cultivo:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -275,19 +287,29 @@ export class CultivosComponent implements OnInit {
             });
           }
         });
+      },
+      reject: () => {
+        // El usuario canceló la eliminación
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Cancelado',
+          detail: 'Eliminación cancelada'
+        });
       }
     });
   }
 
   getFaseSeverity(fase: string): 'success' | 'info' | 'warn' | 'danger' {
     switch (fase) {
-      case 'Sprouting':
+      case 'GERMINACION':
         return 'info';
-      case 'Flowering':
-        return 'warn';
-      case 'Fruiting':
+      case 'CRECIMIENTO_VEGETATIVO':
         return 'success';
-      case 'Ripening':
+      case 'FLORACION':
+        return 'warn';
+      case 'FRUCTIFICACION':
+        return 'success';
+      case 'MADURACION':
         return 'danger';
       default:
         return 'info';
@@ -296,10 +318,11 @@ export class CultivosComponent implements OnInit {
 
   getFaseLabel(fase: string): string {
     const faseMap: any = {
-      'Sprouting': 'Germinación',
-      'Flowering': 'Floración',
-      'Fruiting': 'Fructificación',
-      'Ripening': 'Maduración'
+      'GERMINACION': 'Germinación',
+      'CRECIMIENTO_VEGETATIVO': 'Crecimiento Vegetativo',
+      'FLORACION': 'Floración',
+      'FRUCTIFICACION': 'Fructificación',
+      'MADURACION': 'Maduración'
     };
     return faseMap[fase] || fase;
   }

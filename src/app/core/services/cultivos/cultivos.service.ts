@@ -18,6 +18,26 @@ export class CultivosService {
     private authService: AuthService
   ) {}
 
+  private mapFaseToBackend(fase: string): string {
+    const faseMap: { [key: string]: string } = {
+      'Sprouting': 'GERMINACION',
+      'Flowering': 'FLORACION',
+      'Fruiting': 'FRUCTIFICACION',
+      'Ripening': 'MADURACION'
+    };
+    return faseMap[fase] || fase;
+  }
+
+  private mapFaseFromBackend(fase: string): string {
+    const faseMap: { [key: string]: string } = {
+      'Sprouting': 'GERMINACION',
+      'Flowering': 'FLORACION', 
+      'Fruiting': 'FRUCTIFICACION',
+      'Ripening': 'MADURACION'
+    };
+    return faseMap[fase] || fase;
+  }
+
   getCultivos(): Observable<Cultivo[]> {
     const currentUser = this.authService.getCurrentUser();
     const userId = currentUser?.id;
@@ -32,7 +52,8 @@ export class CultivosService {
         map(cultivos => cultivos.map(cultivo => ({
           ...cultivo,
           fechaPlantacion: new Date(cultivo.fechaPlantacion),
-          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha)
+          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha),
+          faseFenologica: this.mapFaseFromBackend(cultivo.faseFenologica)
         }))),
         catchError(this.handleError)
       );
@@ -44,7 +65,8 @@ export class CultivosService {
         map(cultivo => ({
           ...cultivo,
           fechaPlantacion: new Date(cultivo.fechaPlantacion),
-          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha)
+          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha),
+          faseFenologica: this.mapFaseFromBackend(cultivo.faseFenologica)
         })),
         catchError(this.handleError)
       );
@@ -52,15 +74,18 @@ export class CultivosService {
 
   createCultivo(cultivo: CultivoRequest): Observable<Cultivo> {
     const currentUser = this.authService.getCurrentUser();
-    const fechaPlantacion = new Date();
-    const fechaEstimadaCosecha = new Date();
-    fechaEstimadaCosecha.setMonth(fechaEstimadaCosecha.getMonth() + 7);
+    const fechaPlantacion = cultivo.fechaPlantacion ? new Date(cultivo.fechaPlantacion) : new Date();
+    const fechaEstimadaCosecha = cultivo.fechaEstimadaCosecha ? new Date(cultivo.fechaEstimadaCosecha) : new Date();
+    
+    if (!cultivo.fechaEstimadaCosecha) {
+      fechaEstimadaCosecha.setMonth(fechaEstimadaCosecha.getMonth() + 7);
+    }
 
     const newCultivo = {
       nombre: cultivo.nombre,
       fechaPlantacion: fechaPlantacion.toISOString(),
       fechaEstimadaCosecha: fechaEstimadaCosecha.toISOString(),
-      faseFenologica: 'Sprouting',
+      faseFenologica: this.mapFaseToBackend(cultivo.faseFenologica || 'GERMINACION'),
       sector: cultivo.sector,
       userId: currentUser?.id
     };
@@ -70,7 +95,8 @@ export class CultivosService {
         map(cultivo => ({
           ...cultivo,
           fechaPlantacion: new Date(cultivo.fechaPlantacion),
-          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha)
+          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha),
+          faseFenologica: this.mapFaseFromBackend(cultivo.faseFenologica)
         })),
         catchError(this.handleError)
       );
@@ -84,13 +110,17 @@ export class CultivosService {
     if (updateData.fechaEstimadaCosecha) {
       updateData.fechaEstimadaCosecha = new Date(updateData.fechaEstimadaCosecha).toISOString() as any;
     }
+    if (updateData.faseFenologica) {
+      updateData.faseFenologica = this.mapFaseToBackend(updateData.faseFenologica) as any;
+    }
 
     return this.http.put<Cultivo>(`${this.baseUrl}/cultivos/${id}`, updateData)
       .pipe(
         map(cultivo => ({
           ...cultivo,
           fechaPlantacion: new Date(cultivo.fechaPlantacion),
-          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha)
+          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha),
+          faseFenologica: this.mapFaseFromBackend(cultivo.faseFenologica)
         })),
         catchError(this.handleError)
       );
@@ -118,7 +148,8 @@ export class CultivosService {
         map(cultivos => cultivos.map(cultivo => ({
           ...cultivo,
           fechaPlantacion: new Date(cultivo.fechaPlantacion),
-          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha)
+          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha),
+          faseFenologica: this.mapFaseFromBackend(cultivo.faseFenologica)
         }))),
         catchError(this.handleError)
       );
@@ -128,7 +159,9 @@ export class CultivosService {
     const currentUser = this.authService.getCurrentUser();
     const userId = currentUser?.id;
 
-    let url = `${this.baseUrl}/cultivos?faseFenologica=${fase}`;
+    // Mapear la fase para la consulta al backend
+    const backendFase = this.mapFaseToBackend(fase);
+    let url = `${this.baseUrl}/cultivos?faseFenologica=${backendFase}`;
     if (userId) {
       url += `&userId=${userId}`;
     }
@@ -138,7 +171,8 @@ export class CultivosService {
         map(cultivos => cultivos.map(cultivo => ({
           ...cultivo,
           fechaPlantacion: new Date(cultivo.fechaPlantacion),
-          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha)
+          fechaEstimadaCosecha: new Date(cultivo.fechaEstimadaCosecha),
+          faseFenologica: this.mapFaseFromBackend(cultivo.faseFenologica)
         }))),
         catchError(this.handleError)
       );
