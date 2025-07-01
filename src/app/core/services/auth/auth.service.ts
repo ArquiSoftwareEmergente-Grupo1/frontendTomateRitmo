@@ -1,18 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import {LoginRequest} from '../../interfaces/auth/login-request.interface';
 import {AuthResponse} from '../../interfaces/auth/auth-response.interface';
+import {BackendAuthResponse} from '../../interfaces/auth/backend-auth-response.interface';
 import {RegisterRequest} from '../../interfaces/auth/register-request.interface';
 import {User} from '../../interfaces/auth/user.interface';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:3000';
+  private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'tomateritmo_token';
   private readonly USER_KEY = 'tomateritmo_user';
 
@@ -45,7 +47,8 @@ export class AuthService {
     }
   }
 
-  login(credentials: LoginRequest): Observable<AuthResponse> {
+  login(credentials: any): Observable<AuthResponse> {
+    // Verificar credenciales demo
     if (credentials.email === 'demo@tomateritmo.com' && credentials.password === '123456') {
       const mockUser: User = {
         id: '1',
@@ -74,7 +77,31 @@ export class AuthService {
       );
     }
 
-    return this.http.post<AuthResponse>(`${this.API_URL}/auth/login`, credentials).pipe(
+    // Mapear email a username para el backend
+    const backendCredentials = {
+      username: credentials.email,
+      password: credentials.password
+    };
+
+    return this.http.post<BackendAuthResponse>(`${this.API_URL}/authentication/sign-in`, backendCredentials).pipe(
+      map(backendResponse => {
+        // Convertir la respuesta del backend al formato esperado por el frontend
+        const user: User = {
+          id: backendResponse.id.toString(),
+          name: backendResponse.username.split('@')[0], // Usar la parte antes del @ como nombre
+          email: backendResponse.username,
+          plan: 'Basic'
+        };
+
+        const response: AuthResponse = {
+          success: true,
+          message: 'Inicio de sesión exitoso',
+          user: user,
+          token: backendResponse.token
+        };
+
+        return response;
+      }),
       tap(response => {
         if (response.success && response.user && response.token) {
           this.setAuthData(response.user, response.token, credentials.rememberMe);
