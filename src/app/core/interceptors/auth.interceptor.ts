@@ -13,7 +13,6 @@ import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-
   constructor(
     private authService: AuthService,
     private router: Router
@@ -23,35 +22,33 @@ export class AuthInterceptor implements HttpInterceptor {
     const token = this.authService.getToken();
     const isFormData = req.body instanceof FormData;
 
-    // Log para debugging
     console.log('AuthInterceptor - URL:', req.url);
     console.log('AuthInterceptor - Token:', token ? 'Token presente' : 'Sin token');
 
-    let headers = {
-      Authorization: `Bearer ${token || ''}`,
-      ...(isFormData ? {} : { 'Content-Type': 'application/json' })
-    };
+    // Solo se agregan los headers si hay token
+    let modifiedReq = req;
+    if (token) {
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' })
+      };
+      modifiedReq = req.clone({ setHeaders: headers });
+    }
 
-    const authReq = req.clone({ setHeaders: headers });
-
-    return next.handle(authReq).pipe(
+    return next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {
         console.log('AuthInterceptor - Error:', error.status, error.message);
-        
         if (error.status === 401) {
           console.log('AuthInterceptor - 401 detected');
-          
-          // Solo hacer logout automático para endpoints de autenticación
+
           if (req.url.includes('/auth/') || req.url.includes('/authentication/')) {
             console.log('AuthInterceptor - Auth endpoint, logging out');
             this.authService.logout();
             this.router.navigate(['/login']);
           } else {
-            // Para otros endpoints, solo logear el error
             console.log('AuthInterceptor - Non-auth endpoint, not logging out automatically');
           }
         }
-
         return throwError(() => error);
       })
     );
