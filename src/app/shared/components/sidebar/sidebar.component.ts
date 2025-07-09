@@ -56,13 +56,7 @@ export class SidebarComponent implements OnInit {
       icon: 'pi pi-file',
       routerLink: '/historial',
       description: 'Reportes y análisis histórico'
-    },
-    {
-      label: 'Riego',
-      icon: 'pi pi-sitemap',
-      routerLink: '/riego',
-      description: 'Sistema inteligente de riego'
-    },
+    }
     /*{
       label: 'Suscripción',
       icon: 'pi pi-wallet',

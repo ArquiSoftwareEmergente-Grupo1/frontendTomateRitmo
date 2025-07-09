@@ -101,12 +101,6 @@
                   (onClick)="clearFilters()">
                 </p-button>
 
-                <p-button
-                  label="Exportar"
-                  icon="pi pi-download"
-                  [loading]="exportando"
-                  (onClick)="exportarDatos()">
-                </p-button>
               </div>
             </div>
           </div>
@@ -212,104 +206,6 @@
                 </tr>
               </ng-template>
             </p-table>
-          </div>
-        </div>
-      </p-tabPanel>
-
-      <!-- Tab: Gráficos -->
-      <p-tabPanel header="Datos Ambientales" leftIcon="pi pi-chart-line">
-
-        <div class="charts-section fade-in-up">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>
-                <i class="pi pi-chart-line"></i>
-                Evolución Ambiental
-              </h3>
-              <p>Monitoreo de condiciones ambientales en tiempo real</p>
-            </div>
-
-            <div class="chart-container" *ngIf="datosGrafica">
-              <p-chart
-                type="line"
-                [data]="datosGrafica"
-                [options]="isMobile ? mobileChartOptions : chartOptions"
-                [height]="isMobile ? '300px' : '400px'">
-              </p-chart>
-            </div>
-
-            <div class="chart-actions">
-              <p-button
-                label="Exportar PDF"
-                icon="pi pi-file-pdf"
-                severity="danger"
-                [outlined]="true"
-                (onClick)="exportarPDF()">
-              </p-button>
-
-              <p-button
-                label="Exportar Excel"
-                icon="pi pi-file-excel"
-                severity="success"
-                [outlined]="true"
-                (onClick)="exportarExcel()">
-              </p-button>
-            </div>
-          </div>
-        </div>
-      </p-tabPanel>
-
-      <!-- Tab: Timeline -->
-      <p-tabPanel header="Cronología" leftIcon="pi pi-clock">
-
-        <div class="timeline-section fade-in-up">
-          <div class="timeline-header">
-            <h3>Timeline de Eventos</h3>
-            <p>Cronología visual de las actividades más recientes</p>
-          </div>
-
-          <div class="timeline-container" *ngIf="timelineEvents.length > 0">
-            <p-timeline
-              [value]="timelineEvents"
-              align="alternate"
-              styleClass="custom-timeline">
-
-              <ng-template pTemplate="marker" let-event>
-                <div class="timeline-marker" [style.background-color]="event.color">
-                  <i [class]="event.icon"></i>
-                </div>
-              </ng-template>
-
-              <ng-template pTemplate="content" let-event let-i="index">
-                <div class="timeline-content">
-                  <div class="event-card" (click)="verDetalleEvento(event.evento)">
-                    <div class="event-header">
-                      <h4 class="event-title">{{ event.evento.evento }}</h4>
-                      <span class="event-date">{{ event.date }}</span>
-                    </div>
-
-                    <div class="event-body">
-                      <div class="event-details">
-                        <div class="event-info-row">
-                          <i class="pi pi-map-marker"></i>
-                          <span>{{ event.evento.zona }}</span>
-                        </div>
-                        <div class="event-info-row">
-                          <i class="pi pi-clock"></i>
-                          <span>{{ event.evento.fecha | date:'HH:mm' }}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </ng-template>
-            </p-timeline>
-          </div>
-
-          <div class="empty-timeline" *ngIf="timelineEvents.length === 0">
-            <i class="pi pi-history empty-icon"></i>
-            <h3>Sin eventos recientes</h3>
-            <p>No hay eventos para mostrar en el período seleccionado</p>
           </div>
         </div>
       </p-tabPanel>

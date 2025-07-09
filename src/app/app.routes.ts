@@ -79,16 +79,6 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'riego',
-        component: RiegoComponent,
-        title: 'Control de Riego - TomateRitmo',
-        data: {
-          animation: 'RiegoPage',
-          description: 'Sistema inteligente de riego',
-          breadcrumb: 'Riego'
-        }
-      },
-      {
         path: 'analisis-visual',
         component: AnalisisVisualComponent,
         title: 'Análisis Visual - TomateRitmo',

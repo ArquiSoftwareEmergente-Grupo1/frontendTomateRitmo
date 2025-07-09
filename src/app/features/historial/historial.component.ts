@@ -4,14 +4,12 @@ import { HistorialService } from '../../core/services/historial/historial.servic
 import { Button } from 'primeng/button';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import {DatePipe, NgClass, NgIf} from '@angular/common';
-import { UIChart } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { Calendar } from 'primeng/calendar';
 import { FormsModule } from '@angular/forms';
 import {DropdownModule} from 'primeng/dropdown';
 import { TabView, TabPanel } from 'primeng/tabview';
 import { Badge } from 'primeng/badge';
-import { Timeline } from 'primeng/timeline';
 import { Chip } from 'primeng/chip';
 import {EventoHistorico} from '../../core/interfaces/historial/historial-historico.interface';
 import {DatosGrafica} from '../../core/interfaces/historial/datos-grafica.interface';
@@ -24,7 +22,6 @@ import {Toast} from 'primeng/toast';
     Button,
     ProgressSpinner,
     NgIf,
-    UIChart,
     DatePipe,
     TableModule,
     Calendar,
@@ -32,7 +29,6 @@ import {Toast} from 'primeng/toast';
     TabView,
     TabPanel,
     Badge,
-    Timeline,
     Chip,
     DropdownModule,
     NgClass,
