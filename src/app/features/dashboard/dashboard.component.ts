@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { DashboardService } from '../../core/services/dashboard/dashboard.service';
+import { CultivosService } from '../../core/services/cultivos/cultivos.service';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import {NgIf, NgClass} from '@angular/common';
 import { Button } from 'primeng/button';
@@ -37,6 +38,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loading = true;
   isMobile = false;
   refreshSubscription?: Subscription;
+  totalCultivos = 0;
 
   ambientalChartData: any;
   suplementosChartData: any;
@@ -44,14 +46,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   soilChartOptions: any;
   mobileChartOptions: any;
 
-  estadisticas = {
-    totalCultivos: 0,
-    alertasActivas: 0,
-    eficienciaRiego: 0,
-    ultimaActualizacion: new Date()
-  };
-
-  constructor(private dashboardService: DashboardService) {
+  constructor(
+    private dashboardService: DashboardService,
+    private cultivosService: CultivosService
+  ) {
     this.checkScreenSize();
   }
 
@@ -63,6 +61,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadDashboardData();
+    this.loadCultivos();
     this.initChartOptions();
     this.startAutoRefresh();
   }
@@ -91,7 +90,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.dashboardData = data;
         this.loading = false;
         this.initCharts();
-        this.loadEstadisticas();
       },
       error: (error) => {
         console.error('Error cargando datos del dashboard:', error);
@@ -99,7 +97,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // En caso de error, usar datos por defecto
         this.dashboardData = this.generateSimulatedSensorData();
         this.initCharts();
-        this.loadEstadisticas();
+      }
+    });
+  }
+
+  loadCultivos() {
+    this.cultivosService.getCultivos().subscribe({
+      next: (cultivos) => {
+        this.totalCultivos = cultivos.length;
+        console.log(`Cargados ${this.totalCultivos} cultivos`);
+      },
+      error: (error) => {
+        console.error('Error cargando cultivos:', error);
+        // Si hay error de conexión, usar valor por defecto
+        this.totalCultivos = 0;
+        console.warn('Usando valor por defecto para cultivos debido a error de conexión');
       }
     });
   }
@@ -199,7 +211,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   refreshData() {
-    // Obtener datos actualizados de sensores
+    // Actualizar datos de sensores
     this.dashboardService.getLatestSensorData().subscribe({
       next: (newData) => {
         if (this.dashboardData && newData) {
@@ -219,20 +231,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // En caso de error, mantener datos actuales
       }
     });
-  }
 
-  private loadEstadisticas() {
-    // Generar estadísticas simuladas realistas
-    const totalCultivos = 5 + Math.floor(Math.random() * 8); // 5-12 cultivos
-    const alertasActivas = Math.floor(Math.random() * 4); // 0-3 alertas
-    const eficienciaBase = 75 + Math.random() * 20; // 75-95% eficiencia
-    
-    this.estadisticas = {
-      totalCultivos: totalCultivos,
-      alertasActivas: alertasActivas,
-      eficienciaRiego: Math.round(eficienciaBase),
-      ultimaActualizacion: new Date()
-    };
+    // Actualizar contador de cultivos
+    this.loadCultivos();
   }
 
   initCharts() {
