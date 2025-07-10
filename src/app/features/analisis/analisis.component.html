@@ -45,13 +45,106 @@
 
         <div class="upload-analysis-grid">
 
-          <div class="upload-card">
+          <!-- Paso 1: Selección de Cultivo -->
+          <div class="cultivo-selection-card" *ngIf="!cultivoSeleccionado">
+            <div class="upload-header">
+              <h3>
+                <i class="pi pi-leaf"></i>
+                Seleccionar Cultivo
+              </h3>
+              <p>Primero selecciona el cultivo que deseas analizar</p>
+            </div>
+
+            <div class="cultivo-selection-content">
+              <div class="loading-cultivos" *ngIf="loadingCultivos">
+                <p-progressSpinner strokeWidth="3"></p-progressSpinner>
+                <p>Cargando cultivos...</p>
+              </div>
+
+              <div class="cultivos-grid" *ngIf="!loadingCultivos && cultivos.length > 0">
+                <div 
+                  class="cultivo-card" 
+                  *ngFor="let cultivo of cultivos; trackBy: trackByCultivo"
+                  (click)="seleccionarCultivo(cultivo)"
+                  [class.selected]="esCultivoSeleccionado(cultivo)">
+                  <div class="cultivo-info">
+                    <h4>{{ cultivo.nombre }}</h4>
+                    <p>Sector: {{ cultivo.sector }}</p>
+                    <p>Fase: {{ cultivo.faseFenologica }}</p>
+                  </div>
+                  <i class="pi pi-chevron-right"></i>
+                </div>
+              </div>
+
+              <div class="no-cultivos" *ngIf="!loadingCultivos && cultivos.length === 0">
+                <i class="pi pi-info-circle"></i>
+                <p>No tienes cultivos registrados</p>
+                <p>Crea un cultivo primero para poder realizar análisis</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paso 2: Upload de Imagen -->
+          <div class="upload-card" *ngIf="cultivoSeleccionado">
             <div class="upload-header">
               <h3>
                 <i class="pi pi-cloud-upload"></i>
                 Cargar Imagen
               </h3>
-              <p>Sube una imagen de hoja para análisis automático</p>
+              <p>Sube una imagen de hoja del cultivo: <strong>{{ cultivoSeleccionado.nombre }}</strong></p>
+              <button 
+                class="p-button p-button-text p-button-sm" 
+                (click)="cambiarCultivo()">
+                <i class="pi pi-arrow-left"></i>
+                Cambiar cultivo
+              </button>
+            </div>
+
+            <!-- Historial de Análisis del Cultivo Seleccionado -->
+            <div class="historial-cultivo-section" *ngIf="historialCultivoSeleccionado.length > 0">
+              <div class="historial-header">
+                <h4>
+                  <i class="pi pi-history"></i>
+                  Análisis Previos de {{ cultivoSeleccionado.nombre }}
+                </h4>
+                <p>{{ historialCultivoSeleccionado.length }} análisis realizados</p>
+              </div>
+              
+              <div class="historial-grid">
+                <div 
+                  class="historial-item" 
+                  *ngFor="let analisis of historialCultivoSeleccionado.slice(0, 3); trackBy: trackByAnalisis"
+                  (click)="verDetalleAnalisis(analisis)">
+                  <div class="historial-imagen">
+                    <img [src]="analisis.imagen" alt="Análisis previo" />
+                    <div class="historial-overlay">
+                      <i class="pi pi-eye"></i>
+                    </div>
+                  </div>
+                  <div class="historial-info">
+                    <div class="historial-resultado">
+                      <span class="resultado-badge" 
+                            [ngClass]="getConfianzaSeverity(analisis.confianza)">
+                        {{ analisis.diagnostico }}
+                      </span>
+                    </div>
+                    <div class="historial-fecha">
+                      {{ formatFecha(analisis.fechaAnalisis) }}
+                    </div>
+                    <div class="historial-confianza">
+                      Confianza: {{ formatConfianza(analisis.confianza) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="ver-todos" *ngIf="historialCultivoSeleccionado.length > 3">
+                <button 
+                  class="p-button p-button-outlined p-button-sm"
+                  (click)="verTodoHistorialCultivo()">
+                  Ver todos los análisis ({{ historialCultivoSeleccionado.length }})
+                </button>
+              </div>
             </div>
 
             <div class="upload-content">
@@ -101,5 +194,364 @@
     </p-tabView>
   </div>
 </div>
+
+<!-- Modal de Detalle de Análisis -->
+<p-dialog 
+  header="Detalle del Análisis" 
+  [(visible)]="mostrarDetalleModal" 
+  [modal]="true" 
+  [style]="{width: '90vw', maxWidth: '800px'}"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [showHeader]="true"
+  styleClass="analisis-detail-modal"
+  (onHide)="cerrarDetalleModal()">
+  
+  <div class="detalle-content" *ngIf="analisisDetalle">
+    <div class="detalle-header">
+      <div class="detalle-imagen-principal">
+        <img [src]="analisisDetalle.imagen" alt="Imagen analizada" />
+      </div>
+      <div class="detalle-info-principal">
+        <h3>{{ analisisDetalle.diagnostico }}</h3>
+        <div class="detalle-badges">
+          <span class="resultado-badge" [ngClass]="getConfianzaSeverity(analisisDetalle.confianza)">
+            {{ analisisDetalle.anomalia === 'healthy' ? 'Saludable' : 'Anomalía Detectada' }}
+          </span>
+          <span class="confianza-badge">
+            {{ formatConfianza(analisisDetalle.confianza) }} confianza
+          </span>
+        </div>
+        <div class="detalle-fecha">
+          <i class="pi pi-calendar"></i>
+          {{ formatFecha(analisisDetalle.fechaAnalisis) }}
+        </div>
+        <div class="detalle-confirmado" *ngIf="analisisDetalle.confirmado !== undefined">
+          <i class="pi" [ngClass]="analisisDetalle.confirmado ? 'pi-check-circle' : 'pi-times-circle'"></i>
+          {{ analisisDetalle.confirmado ? 'Diagnóstico confirmado' : 'Diagnóstico no confirmado' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="detalle-sections">
+      <!-- Sección de Anomalía Detectada -->
+      <div class="detalle-section" *ngIf="analisisDetalle.anomalia !== 'healthy'">
+        <h4>
+          <i class="pi pi-exclamation-triangle"></i>
+          Tipo de Anomalía
+        </h4>
+        <div class="anomalia-info">
+          <div class="anomalia-nombre">{{ getAnomaliaDisplayName(analisisDetalle.anomalia) }}</div>
+          <div class="anomalia-descripcion">{{ getAnomaliaDescription(analisisDetalle.anomalia) }}</div>
+        </div>
+      </div>
+
+      <!-- Sección de Recomendaciones -->
+      <div class="detalle-section">
+        <h4>
+          <i class="pi pi-lightbulb"></i>
+          Recomendaciones
+        </h4>
+        <ul class="recomendaciones-list">
+          <li *ngFor="let recomendacion of analisisDetalle.recomendaciones">
+            <i class="pi pi-check"></i>
+            {{ recomendacion }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- Sección de Métricas -->
+      <div class="detalle-section">
+        <h4>
+          <i class="pi pi-chart-line"></i>
+          Métricas del Análisis
+        </h4>
+        <div class="metricas-grid">
+          <div class="metrica-item">
+            <div class="metrica-label">Nivel de Confianza</div>
+            <div class="metrica-valor">
+              <p-progressBar 
+                [value]="analisisDetalle.confianza * 100" 
+                [showValue]="false"
+                [style]="{'height': '8px'}"
+                [class]="getConfianzaSeverity(analisisDetalle.confianza)">
+              </p-progressBar>
+              <span class="metrica-porcentaje">{{ formatConfianza(analisisDetalle.confianza) }}</span>
+            </div>
+          </div>
+          <div class="metrica-item">
+            <div class="metrica-label">Estado</div>
+            <div class="metrica-valor">
+              <span class="estado-badge" [ngClass]="analisisDetalle.anomalia === 'healthy' ? 'saludable' : 'problema'">
+                {{ analisisDetalle.anomalia === 'healthy' ? 'Saludable' : 'Requiere Atención' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección de Acciones -->
+      <div class="detalle-section">
+        <h4>
+          <i class="pi pi-cog"></i>
+          Acciones
+        </h4>
+        <div class="acciones-buttons">
+          <button 
+            class="p-button p-button-success p-button-sm"
+            *ngIf="analisisDetalle.confirmado === false || analisisDetalle.confirmado === undefined"
+            (click)="confirmarDiagnosticoDetalle()">
+            <i class="pi pi-check"></i>
+            Confirmar Diagnóstico
+          </button>
+          <button 
+            class="p-button p-button-warning p-button-outlined p-button-sm"
+            *ngIf="analisisDetalle.confirmado === true"
+            (click)="marcarComoErrorDetalle()">
+            <i class="pi pi-times"></i>
+            Marcar como Incorrecto
+          </button>
+          <button 
+            class="p-button p-button-info p-button-outlined p-button-sm"
+            (click)="exportarAnalisisDetalle()">
+            <i class="pi pi-download"></i>
+            Exportar Análisis
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Modal de Historial Completo -->
+<p-dialog 
+  [(visible)]="mostrarHistorialCompletoModal" 
+  [modal]="true" 
+  [responsive]="true" 
+  [style]="{width: '95vw', maxWidth: '1200px', height: '90vh'}"
+  [maximizable]="true"
+  [closable]="true"
+  styleClass="historial-completo-modal"
+  (onHide)="cerrarHistorialCompleto()">
+  
+  <ng-template pTemplate="header">
+    <div class="modal-header-custom">
+      <h3 class="modal-title">
+        <i class="pi pi-history"></i>
+        Historial Completo - {{ cultivoSeleccionado?.nombre }}
+      </h3>
+      <div class="header-actions">
+        <button 
+          class="p-button p-button-sm p-button-outlined"
+          (click)="exportarHistorial()">
+          <i class="pi pi-download"></i>
+          Exportar
+        </button>
+        <button 
+          class="p-button p-button-sm p-button-outlined"
+          (click)="limpiarFiltros()">
+          <i class="pi pi-refresh"></i>
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="historial-completo-content">
+    <!-- Filtros -->
+    <div class="filtros-section">
+      <div class="filtros-grid">
+        <div class="filtro-item">
+          <label>Fecha:</label>
+          <input 
+            type="date" 
+            [(ngModel)]="filtroFecha"
+            (change)="aplicarFiltrosYOrdenamiento()"
+            class="p-inputtext p-component">
+        </div>
+        
+        <div class="filtro-item">
+          <label>Anomalía:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="filtroAnomalia"
+            (input)="aplicarFiltrosYOrdenamiento()"
+            placeholder="Buscar por anomalía..."
+            class="p-inputtext p-component">
+        </div>
+        
+        <div class="filtro-item">
+          <label>Confianza mínima (%):</label>
+          <input 
+            type="number" 
+            [(ngModel)]="filtroConfianza"
+            (input)="aplicarFiltrosYOrdenamiento()"
+            min="0" 
+            max="100"
+            placeholder="0-100"
+            class="p-inputtext p-component">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de resultados -->
+    <div class="tabla-section">
+      <div class="tabla-header">
+        <div class="resultados-info">
+          <span>{{ historialCompletoFiltrado.length }} análisis encontrados</span>
+        </div>
+        <div class="ordenamiento">
+          <button 
+            class="orden-btn"
+            [class.active]="ordenPor === 'fecha'"
+            (click)="cambiarOrden('fecha')">
+            Fecha
+            <i *ngIf="ordenPor === 'fecha'" 
+               [class]="'pi ' + (ordenDireccion === 'asc' ? 'pi-sort-up' : 'pi-sort-down')"></i>
+          </button>
+          <button 
+            class="orden-btn"
+            [class.active]="ordenPor === 'confianza'"
+            (click)="cambiarOrden('confianza')">
+            Confianza
+            <i *ngIf="ordenPor === 'confianza'" 
+               [class]="'pi ' + (ordenDireccion === 'asc' ? 'pi-sort-up' : 'pi-sort-down')"></i>
+          </button>
+          <button 
+            class="orden-btn"
+            [class.active]="ordenPor === 'anomalia'"
+            (click)="cambiarOrden('anomalia')">
+            Anomalía
+            <i *ngIf="ordenPor === 'anomalia'" 
+               [class]="'pi ' + (ordenDireccion === 'asc' ? 'pi-sort-up' : 'pi-sort-down')"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="historial-tabla">
+        <div class="tabla-responsive">
+          <table class="analisis-table">
+            <thead>
+              <tr>
+                <th>Imagen</th>
+                <th>Fecha y Hora</th>
+                <th>Diagnóstico</th>
+                <th>Anomalía</th>
+                <th>Confianza</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let analisis of historialCompletoPaginado" class="analisis-row">
+                <td class="imagen-cell">
+                  <img 
+                    [src]="analisis.imagen" 
+                    [alt]="'Análisis ' + analisis.id"
+                    class="analisis-thumbnail"
+                    (error)="onImageError($event)">
+                </td>
+                <td class="fecha-cell">
+                  <div class="fecha-info">
+                    <div class="fecha-principal">{{ formatFecha(analisis.fechaAnalisis) }}</div>
+                  </div>
+                </td>
+                <td class="diagnostico-cell">
+                  <div class="diagnostico-info">
+                    <i [class]="analisis.diagnostico === 'Cultivo saludable' ? 'pi pi-check-circle salud-icon' : 'pi pi-exclamation-triangle anomalia-icon'"></i>
+                    <span>{{ analisis.diagnostico }}</span>
+                  </div>
+                </td>
+                <td class="anomalia-cell">
+                  <div class="anomalia-info">
+                    <div class="anomalia-nombre">{{ getAnomaliaDisplayName(analisis.anomalia) }}</div>
+                    <div class="anomalia-tecnica">{{ analisis.anomalia }}</div>
+                  </div>
+                </td>
+                <td class="confianza-cell">
+                  <div class="confianza-info">
+                    <div class="confianza-valor" [style.color]="getConfianzaColor(analisis.confianza)">
+                      {{ formatConfianza(analisis.confianza) }}
+                    </div>
+                    <div class="confianza-barra">
+                      <div class="barra-progreso" [style.width.%]="analisis.confianza * 100" [style.background-color]="getConfianzaColor(analisis.confianza)"></div>
+                    </div>
+                  </div>
+                </td>
+                <td class="estado-cell">
+                  <span class="estado-badge" [class.confirmado]="analisis.confirmado" [class.pendiente]="!analisis.confirmado">
+                    {{ analisis.confirmado ? 'Confirmado' : 'Pendiente' }}
+                  </span>
+                </td>
+                <td class="acciones-cell">
+                  <button 
+                    class="p-button p-button-sm p-button-outlined"
+                    (click)="verDetalleAnalisis(analisis)">
+                    <i class="pi pi-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mensaje cuando no hay resultados -->
+        <div *ngIf="historialCompletoFiltrado.length === 0" class="sin-resultados">
+          <i class="pi pi-info-circle"></i>
+          <p>No se encontraron análisis que coincidan con los filtros aplicados.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="paginacion-section" *ngIf="totalPaginas > 1">
+      <div class="paginacion-info">
+        <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <span>Mostrando {{ historialCompletoPaginado.length }} de {{ historialCompletoFiltrado.length }} resultados</span>
+      </div>
+      
+      <div class="paginacion-controles">
+        <button 
+          class="p-button p-button-sm p-button-outlined"
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(1)">
+          <i class="pi pi-angle-double-left"></i>
+        </button>
+        
+        <button 
+          class="p-button p-button-sm p-button-outlined"
+          [disabled]="paginaActual === 1"
+          (click)="cambiarPagina(paginaActual - 1)">
+          <i class="pi pi-angle-left"></i>
+        </button>
+        
+        <span class="paginas-numeros">
+          <button 
+            *ngFor="let pagina of getPaginaNumeros()"
+            class="p-button p-button-sm"
+            [class.p-button-outlined]="pagina !== paginaActual"
+            (click)="cambiarPagina(pagina)">
+            {{ pagina }}
+          </button>
+        </span>
+        
+        <button 
+          class="p-button p-button-sm p-button-outlined"
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(paginaActual + 1)">
+          <i class="pi pi-angle-right"></i>
+        </button>
+        
+        <button 
+          class="p-button p-button-sm p-button-outlined"
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(totalPaginas)">
+          <i class="pi pi-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</p-dialog>
 
 

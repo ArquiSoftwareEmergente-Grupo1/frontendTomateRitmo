@@ -8,4 +8,5 @@ export interface AnalisisResultado {
   cultivoId?: string;
   fechaAnalisis?: string;
   confirmado?: boolean;
+  imagenPath?: string; // Ruta donde se guardó la imagen en el servidor
 }
