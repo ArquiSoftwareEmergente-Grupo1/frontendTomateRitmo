@@ -117,11 +117,10 @@ export class SidebarComponent implements OnInit {
   }
 
   getUserInitials(): string {
-    return this.currentUser.name
-      .split(' ')
-      .map(name => name.charAt(0))
-      .join('')
-      .toUpperCase();
+    if (!this.currentUser?.email) return 'U';
+    // Tomar las primeras dos letras del email antes del @
+    const emailPrefix = this.currentUser.email.split('@')[0];
+    return emailPrefix.substring(0, 2).toUpperCase();
   }
 
   getPlan(): string {

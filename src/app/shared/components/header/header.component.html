@@ -37,7 +37,7 @@
 
       <div class="user-greeting" *ngIf="!isMobile && currentUser">
         <span class="greeting-text">{{ getGreeting() }}</span>
-        <span class="user-name">{{ currentUser.name | titlecase }}</span>
+        <span class="user-name">{{ currentUser.email | titlecase }}</span>
       </div>
 
       <div class="user-menu" *ngIf="currentUser">
