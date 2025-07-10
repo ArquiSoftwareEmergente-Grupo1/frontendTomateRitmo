@@ -95,7 +95,7 @@ export class AnalisisService {
 
         // Crear el resultado del análisis
         const resultado: AnalisisResultado = {
-          id: this.generateId(),
+          id: this.generateNumericId(),
           imagen: imagenUrl || URL.createObjectURL(imagen), // Usar URL del servidor o fallback temporal
           diagnostico: diagnostico, // Usar diagnóstico genérico
           anomalia: clase,
@@ -104,7 +104,9 @@ export class AnalisisService {
           cultivoId: cultivoId || '1',
           fechaAnalisis: new Date().toISOString(),
           confirmado: false,
-          imagenPath: imagenGuardadaPath // Guardar la ruta donde se guardó la imagen
+          imagenPath: imagenGuardadaPath, // Guardar la ruta donde se guardó la imagen
+          fechaCreacion: new Date().toISOString(),
+          fechaActualizacion: new Date().toISOString()
         };
 
         // Retornar el resultado y también guardarlo en el backend de forma asíncrona
@@ -129,6 +131,10 @@ export class AnalisisService {
 
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  private generateNumericId(): number {
+    return Date.now() + Math.floor(Math.random() * 1000);
   }
 
   private getRecomendacionesPorAnomalia(anomalia: string): string[] {
@@ -271,6 +277,36 @@ export class AnalisisService {
           );
         }),
         catchError(this.handleError)
+      );
+  }
+
+  /**
+   * Obtiene los análisis más recientes usando el endpoint específico
+   */
+  getAnalisisRecientes(): Observable<AnalisisResultado[]> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+    
+    return this.http.get<AnalisisResultado[]>(`${this.baseUrl}/analisisResultados/recientes`, { headers })
+      .pipe(
+        map(resultados => {
+          if (!resultados || resultados.length === 0) {
+            return [];
+          }
+          
+          // Procesar URLs de imágenes 
+          return resultados.map(resultado => ({
+            ...resultado,
+            imagen: this.procesarUrlImagen(resultado.imagen)
+          }));
+        }),
+        catchError(error => {
+          console.error('Error al obtener análisis recientes:', error);
+          // Retornar un array vacío en caso de error
+          return [];
+        })
       );
   }
 

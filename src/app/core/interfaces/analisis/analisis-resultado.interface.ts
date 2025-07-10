@@ -1,12 +1,14 @@
 export interface AnalisisResultado {
-  id: string;
+  id: number;
   imagen: string;
   diagnostico: string;
   anomalia: string;
   confianza: number;
   recomendaciones: string[];
-  cultivoId?: string;
-  fechaAnalisis?: string;
-  confirmado?: boolean;
-  imagenPath?: string; // Ruta donde se guardó la imagen en el servidor
+  cultivoId: string;
+  fechaAnalisis: string;
+  confirmado: boolean;
+  imagenPath: string;
+  fechaCreacion: string;
+  fechaActualizacion: string;
 }

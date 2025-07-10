@@ -372,7 +372,7 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
 
   confirmarDiagnosticoDetalle(): void {
     if (this.analisisDetalle) {
-      this.analisisService.confirmarDiagnostico(this.analisisDetalle.id, true).subscribe({
+      this.analisisService.confirmarDiagnostico(this.analisisDetalle.id.toString(), true).subscribe({
         next: (resultado) => {
           this.analisisDetalle!.confirmado = true;
           // Actualizar también en el historial
@@ -403,7 +403,7 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
 
   marcarComoErrorDetalle(): void {
     if (this.analisisDetalle) {
-      this.analisisService.confirmarDiagnostico(this.analisisDetalle.id, false).subscribe({
+      this.analisisService.confirmarDiagnostico(this.analisisDetalle.id.toString(), false).subscribe({
         next: (resultado) => {
           this.analisisDetalle!.confirmado = false;
           // Actualizar también en el historial
@@ -536,7 +536,7 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
 
   confirmarDiagnostico() {
     if (this.ultimoAnalisis) {
-      this.analisisService.confirmarDiagnostico(this.ultimoAnalisis.id, true).subscribe({
+      this.analisisService.confirmarDiagnostico(this.ultimoAnalisis.id.toString(), true).subscribe({
         next: (resultado) => {
           this.ultimoAnalisis = resultado;
           this.messageService.add({
@@ -561,7 +561,7 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
 
   marcarComoError() {
     if (this.ultimoAnalisis) {
-      this.analisisService.confirmarDiagnostico(this.ultimoAnalisis.id, false).subscribe({
+      this.analisisService.confirmarDiagnostico(this.ultimoAnalisis.id.toString(), false).subscribe({
         next: (resultado) => {
           this.ultimoAnalisis = resultado;
           this.messageService.add({
@@ -669,7 +669,7 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
   }
 
   trackByAnalisis(index: number, item: AnalisisResultado): string {
-    return item.id;
+    return item.id.toString();
   }
 
   trackByAlerta(index: number, item: AlertaVisual): string {

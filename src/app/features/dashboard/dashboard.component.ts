@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { DashboardService } from '../../core/services/dashboard/dashboard.service';
 import { CultivosService } from '../../core/services/cultivos/cultivos.service';
+import { AnalisisService } from '../../core/services/analisis/analisis.service';
 import { ProgressSpinner } from 'primeng/progressspinner';
-import {NgIf, NgClass} from '@angular/common';
+import {NgIf, NgClass, DatePipe, TitleCasePipe} from '@angular/common';
 import { Button } from 'primeng/button';
 import { UIChart } from 'primeng/chart';
 import { Card } from 'primeng/card';
@@ -12,6 +13,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { FormsModule } from '@angular/forms';
 import { interval, Subscription } from 'rxjs';
 import {DashboardData} from '../../core/interfaces/dashboard/dashboard-data.interface';
+import {AnalisisResultado} from '../../core/interfaces/analisis/analisis-resultado.interface';
 import {Toast} from 'primeng/toast';
 
 type BadgeSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
@@ -23,6 +25,8 @@ type BadgeSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'con
     ProgressSpinner,
     NgIf,
     NgClass,
+    DatePipe,
+    TitleCasePipe,
     Button,
     UIChart,
     Knob,
@@ -39,6 +43,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   isMobile = false;
   refreshSubscription?: Subscription;
   totalCultivos = 0;
+  ultimaDeteccion: AnalisisResultado | null = null;
 
   ambientalChartData: any;
   suplementosChartData: any;
@@ -48,7 +53,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private dashboardService: DashboardService,
-    private cultivosService: CultivosService
+    private cultivosService: CultivosService,
+    private analisisService: AnalisisService
   ) {
     this.checkScreenSize();
   }
@@ -62,6 +68,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadDashboardData();
     this.loadCultivos();
+    this.loadUltimaDeteccion();
     this.initChartOptions();
     this.startAutoRefresh();
   }
@@ -112,6 +119,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // Si hay error de conexión, usar valor por defecto
         this.totalCultivos = 0;
         console.warn('Usando valor por defecto para cultivos debido a error de conexión');
+      }
+    });
+  }
+
+  loadUltimaDeteccion() {
+    this.analisisService.getAnalisisRecientes().subscribe({
+      next: (analisis) => {
+        if (analisis && analisis.length > 0) {
+          this.ultimaDeteccion = analisis[0]; // Tomar el más reciente
+          console.log('Última detección cargada:', this.ultimaDeteccion);
+        } else {
+          this.ultimaDeteccion = null;
+          console.log('No hay análisis recientes disponibles');
+        }
+      },
+      error: (error) => {
+        console.error('Error cargando última detección:', error);
+        this.ultimaDeteccion = null;
       }
     });
   }
@@ -234,6 +259,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     // Actualizar contador de cultivos
     this.loadCultivos();
+    
+    // Actualizar última detección
+    this.loadUltimaDeteccion();
   }
 
   initCharts() {

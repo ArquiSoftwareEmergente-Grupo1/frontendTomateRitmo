@@ -229,40 +229,6 @@
 
     <section class="controls-section fade-in-up">
       <div class="controls-grid">
-
-        <div class="control-card irrigation-card">
-          <div class="control-header">
-            <div class="control-icon">
-              <i class="pi pi-sync"></i>
-            </div>
-            <div class="control-info">
-              <h3>Sistema de Riego</h3>
-              <p>Control automático/manual</p>
-            </div>
-          </div>
-
-          <div class="control-content">
-            <div class="irrigation-status">
-              <span class="current-mode">
-                Modo: {{ dashboardData.tipoRiego }}
-              </span>
-
-              <div class="mode-indicator"
-                   [ngClass]="{'active': dashboardData.tipoRiego === 'Automatico'}">
-                <i class="pi" [ngClass]="dashboardData.tipoRiego === 'Automatico' ? 'pi-play' : 'pi-pause'"></i>
-              </div>
-            </div>
-
-            <p-button
-              [label]="'Cambiar a ' + (dashboardData.tipoRiego === 'Manual' ? 'Automático' : 'Manual')"
-              [icon]="dashboardData.tipoRiego === 'Manual' ? 'pi pi-play' : 'pi pi-pause'"
-              (onClick)="toggleRiegoMode()"
-              styleClass="w-full control-button"
-              [severity]="dashboardData.tipoRiego === 'Manual' ? 'success' : 'secondary'">
-            </p-button>
-          </div>
-        </div>
-
         <div class="control-card detection-card">
           <div class="control-header">
             <div class="control-icon">
@@ -275,10 +241,11 @@
           </div>
 
           <div class="control-content">
-            <div class="detection-content">
+            <!-- Estado cuando hay detección disponible -->
+            <div class="detection-content" *ngIf="ultimaDeteccion">
               <div class="detection-image">
                 <img
-                  [src]="dashboardData.ultimaDeteccionVisual.imagen"
+                  [src]="ultimaDeteccion.imagen"
                   alt="Última detección"
                   class="detection-img">
                 <div class="detection-overlay">
@@ -288,20 +255,52 @@
 
               <div class="detection-info">
                 <h4 class="detection-title">
-                  {{ dashboardData.ultimaDeteccionVisual.diagnostico }}
+                  {{ ultimaDeteccion.diagnostico }}
                 </h4>
                 <p class="detection-description">
-                  {{ dashboardData.ultimaDeteccionVisual.anomalia }}
+                  {{ ultimaDeteccion.anomalia | titlecase }}
                 </p>
+                <div class="detection-metadata">
+                  <small class="detection-date">
+                    <i class="pi pi-calendar"></i>
+                    {{ ultimaDeteccion.fechaAnalisis | date:'short' }}
+                  </small>
+                  <p-badge 
+                    [value]="(ultimaDeteccion.confianza * 100).toFixed(0) + '%'"
+                    [severity]="ultimaDeteccion.confianza > 0.8 ? 'success' : ultimaDeteccion.confianza > 0.6 ? 'warn' : 'danger'"
+                    [style]="{'margin-left': '0.5rem'}">
+                  </p-badge>
+                </div>
 
                 <p-button
                   label="Ver Análisis"
                   icon="pi pi-external-link"
                   [text]="true"
                   size="small"
-                  styleClass="detection-button">
+                  styleClass="detection-button"
+                  routerLink="/analisis">
                 </p-button>
               </div>
+            </div>
+
+            <!-- Estado cuando no hay detección disponible -->
+            <div class="no-detection-content" *ngIf="!ultimaDeteccion">
+              <div class="no-detection-icon">
+                <i class="pi pi-image text-4xl text-gray-400"></i>
+              </div>
+              <p class="no-detection-text">
+                No hay análisis recientes disponibles
+              </p>
+              <p class="no-detection-subtitle">
+                Sube una imagen para comenzar
+              </p>
+              <p-button
+                label="Nuevo Análisis"
+                icon="pi pi-upload"
+                [outlined]="true"
+                size="small"
+                routerLink="/analisis">
+              </p-button>
             </div>
           </div>
         </div>       
