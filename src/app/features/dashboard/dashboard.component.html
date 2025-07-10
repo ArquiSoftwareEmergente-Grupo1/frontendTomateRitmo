@@ -220,14 +220,14 @@
               <i class="pi pi-chart-bar"></i>
               Análisis del Suelo
             </h3>
-            <p>Niveles de nutrientes y pH</p>
+            <p>Valores actuales de pH y conductividad eléctrica del suelo</p>
           </div>
 
           <div class="chart-container">
             <p-chart
-              type="radar"
+              type="bar"
               [data]="suplementosChartData"
-              [options]="isMobile ? mobileChartOptions : chartOptions"
+              [options]="isMobile ? mobileChartOptions : soilChartOptions"
               [height]="isMobile ? '250px' : '300px'">
             </p-chart>
           </div>

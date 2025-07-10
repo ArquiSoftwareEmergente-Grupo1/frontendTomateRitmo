@@ -52,10 +52,8 @@ export class AuthService {
     if (credentials.email === 'demo@tomateritmo.com' && credentials.password === '123456') {
       const mockUser: User = {
         id: '1',
-        name: 'Usuario Demo',
         email: 'demo@tomateritmo.com',
-        country: 'Perú',
-        city: 'Lima',
+        username: 'demo@tomateritmo.com',
         plan: 'Premium',
         createdAt: new Date(),
         lastLogin: new Date()
@@ -88,8 +86,8 @@ export class AuthService {
         // Convertir la respuesta del backend al formato esperado por el frontend
         const user: User = {
           id: backendResponse.id.toString(),
-          name: backendResponse.username.split('@')[0], // Usar la parte antes del @ como nombre
           email: backendResponse.username,
+          username: backendResponse.username,
           plan: 'Basic'
         };
 
@@ -112,29 +110,44 @@ export class AuthService {
   }
 
   register(userData: RegisterRequest): Observable<AuthResponse> {
-    const mockUser: User = {
-      id: Date.now().toString(),
-      name: userData.name,
-      lastName: userData.lastName,
-      email: userData.email,
-      country: userData.country,
-      city: userData.city,
-      plan: 'Basic',
-      createdAt: new Date()
+    // Mapear los datos del frontend al formato esperado por el backend
+    const backendRegisterData = {
+      username: userData.email,  // El backend usa 'username' (que será el email)
+      password: userData.password
     };
 
-    const response: AuthResponse = {
-      success: true,
-      message: 'Registro exitoso',
-      user: mockUser,
-      token: `token-${Date.now()}`
-    };
+    console.log('Enviando datos de registro al backend:', backendRegisterData);
 
-    return of(response).pipe(
+    return this.http.post<any>(`${this.API_URL}/authentication/sign-up`, backendRegisterData).pipe(
+      map(backendResponse => {
+        console.log('Respuesta del backend para registro:', backendResponse);
+        
+        // Convertir la respuesta del backend al formato esperado por el frontend
+        const user: User = {
+          id: backendResponse.id?.toString() || Date.now().toString(),
+          email: userData.email,
+          username: userData.email,
+          plan: 'Basic',
+          createdAt: new Date()
+        };
+
+        const response: AuthResponse = {
+          success: true,
+          message: 'Registro exitoso',
+          user: user,
+          token: backendResponse.token || `token-${Date.now()}` // Usar token del backend si está disponible
+        };
+
+        return response;
+      }),
       tap(response => {
         if (response.success && response.user && response.token) {
           this.setAuthData(response.user, response.token, false);
         }
+      }),
+      catchError(error => {
+        console.error('Error en registro:', error);
+        return this.handleError(error);
       })
     );
   }
@@ -260,7 +273,13 @@ export class AuthService {
           errorMessage = error.error?.message || 'Error de validación';
           break;
         case 500:
-          errorMessage = 'Error interno del servidor';
+          // Manejo específico para el error "User not found"
+          if (error.error?.message?.includes('User not found') || 
+              error.error?.error?.includes('User not found')) {
+            errorMessage = 'Usuario no encontrado. Asegúrate de registrarte primero o usa las credenciales demo: demo@tomateritmo.com / 123456';
+          } else {
+            errorMessage = 'Error interno del servidor';
+          }
           break;
         default:
           errorMessage = `Error: ${error.status} - ${error.message}`;

@@ -41,6 +41,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ambientalChartData: any;
   suplementosChartData: any;
   chartOptions: any;
+  soilChartOptions: any;
   mobileChartOptions: any;
 
   estadisticas = {
@@ -85,14 +86,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loadDashboardData() {
     this.loading = true;
     
-    // Simular delay de carga como si fuera una API real
-    setTimeout(() => {
-      // Datos simulados de sensores
-      this.dashboardData = this.generateSimulatedSensorData();
-      this.loading = false;
-      this.initCharts();
-      this.loadEstadisticas();
-    }, 1000);
+    this.dashboardService.getDashboardData().subscribe({
+      next: (data) => {
+        this.dashboardData = data;
+        this.loading = false;
+        this.initCharts();
+        this.loadEstadisticas();
+      },
+      error: (error) => {
+        console.error('Error cargando datos del dashboard:', error);
+        this.loading = false;
+        // En caso de error, usar datos por defecto
+        this.dashboardData = this.generateSimulatedSensorData();
+        this.initCharts();
+        this.loadEstadisticas();
+      }
+    });
   }
 
   private generateSimulatedSensorData(): DashboardData {
@@ -128,9 +137,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private getEstadoSuelo(ph: number, ec: number): string {
-    if (ph >= 6.0 && ph <= 7.0 && ec >= 1.0 && ec <= 2.0) {
+    // Rangos ajustados para tomates según los datos del IoT
+    if (ph >= 6.0 && ph <= 8.0 && ec >= 0.8 && ec <= 3.0) {
       return 'Óptimo';
-    } else if (ph >= 5.5 && ph <= 7.5 && ec >= 0.8 && ec <= 2.5) {
+    } else if (ph >= 5.5 && ph <= 8.5 && ec >= 0.5 && ec <= 3.5) {
       return 'Bueno';
     } else {
       return 'Necesita atención';
@@ -138,12 +148,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private getEstadoLuminosidad(intensidad: number): string {
-    if (intensidad >= 20000) {
+    // Rangos ajustados para los valores reales del sensor IoT
+    if (intensidad >= 50000) {
       return 'Excelente';
+    } else if (intensidad >= 25000) {
+      return 'Óptimo';
     } else if (intensidad >= 15000) {
-      return 'Buena';
-    } else if (intensidad >= 10000) {
-      return 'Moderada';
+      return 'Bueno';
+    } else if (intensidad >= 8000) {
+      return 'Moderado';
     } else {
       return 'Insuficiente';
     }
@@ -186,33 +199,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   refreshData() {
-    // Simular actualización de datos de sensores
-    if (this.dashboardData) {
-      // Actualizar valores con pequeñas variaciones realistas
-      this.dashboardData.humedadActual = Math.round(
-        (this.dashboardData.humedadActual + (Math.random() - 0.5) * 5) * 10
-      ) / 10;
-      
-      this.dashboardData.temperaturaActual = Math.round(
-        (this.dashboardData.temperaturaActual + (Math.random() - 0.5) * 2) * 10
-      ) / 10;
-      
-      this.dashboardData.luminosidad.intensidad = Math.round(
-        this.dashboardData.luminosidad.intensidad + (Math.random() - 0.5) * 2000
-      );
-      
-      // Mantener valores dentro de rangos realistas
-      this.dashboardData.humedadActual = Math.max(30, Math.min(80, this.dashboardData.humedadActual));
-      this.dashboardData.temperaturaActual = Math.max(15, Math.min(35, this.dashboardData.temperaturaActual));
-      this.dashboardData.luminosidad.intensidad = Math.max(5000, Math.min(35000, this.dashboardData.luminosidad.intensidad));
-      
-      // Actualizar estados basados en los nuevos valores
-      this.dashboardData.luminosidad.estado = this.getEstadoLuminosidad(this.dashboardData.luminosidad.intensidad);
-      this.dashboardData.fechaActualizacion = new Date().toISOString();
-      
-      this.estadisticas.ultimaActualizacion = new Date();
-      this.updateCharts();
-    }
+    // Obtener datos actualizados de sensores
+    this.dashboardService.getLatestSensorData().subscribe({
+      next: (newData) => {
+        if (this.dashboardData && newData) {
+          // Actualizar solo los campos que vienen del sensor
+          this.dashboardData = {
+            ...this.dashboardData,
+            ...newData,
+            fechaActualizacion: new Date().toISOString()
+          };
+          
+          // Actualizar gráficos si es necesario
+          this.updateCharts();
+        }
+      },
+      error: (error) => {
+        console.warn('Error actualizando datos de sensores:', error);
+        // En caso de error, mantener datos actuales
+      }
+    });
   }
 
   private loadEstadisticas() {
@@ -230,6 +236,42 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   initCharts() {
+    // Cargar datos reales de gráficos ambientales
+    this.dashboardService.getGraficoAmbiental().subscribe({
+      next: (data) => {
+        this.ambientalChartData = data;
+      },
+      error: (error) => {
+        console.warn('Error cargando gráfico ambiental, usando datos por defecto:', error);
+        this.initAmbientalChartWithDefaults();
+      }
+    });
+
+    // Cargar datos reales de gráficos de suelo
+    this.dashboardService.getGraficoSuelo().subscribe({
+      next: (data) => {
+        // Validar que los datos sean válidos antes de asignar
+        if (data && data.datasets && data.datasets[0] && data.datasets[0].data) {
+          // Validar que los valores no sean undefined o null
+          const validData = data.datasets[0].data.map((value: any) => {
+            const numValue = parseFloat(value?.toString() || '0');
+            return isNaN(numValue) ? 0 : numValue;
+          });
+          
+          data.datasets[0].data = validData;
+          this.suplementosChartData = data;
+        } else {
+          this.initSueloChartWithDefaults();
+        }
+      },
+      error: (error) => {
+        console.warn('Error cargando gráfico de suelo, usando datos por defecto:', error);
+        this.initSueloChartWithDefaults();
+      }
+    });
+  }
+
+  private initAmbientalChartWithDefaults() {
     // Generar datos de las últimas 24 horas con variaciones realistas
     const hoursLabels = ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'];
     const humedadData = this.generateRealisticHumidityData();
@@ -265,34 +307,60 @@ export class DashboardComponent implements OnInit, OnDestroy {
       ]
     };
 
-    // Datos del suelo más realistas
+    // Datos del suelo reales - solo pH y EC del backend con validación (gráfico de barras)
+    const phValue = this.dashboardData?.calidadSuelo?.ph || 6.5;
+    const ecValue = this.dashboardData?.calidadSuelo?.ec || 1.2;
+    
     this.suplementosChartData = {
-      labels: ['pH', 'EC (mS/cm)', 'Nitrógeno (%)', 'Fósforo (%)', 'Potasio (%)'],
+      labels: ['pH', 'EC (mS/cm)'],
       datasets: [
         {
-          label: 'Niveles Actuales',
+          label: 'Análisis del Suelo',
           data: [
-            this.dashboardData?.calidadSuelo.ph || 6.5,
-            this.dashboardData?.calidadSuelo.ec || 1.2,
-            75 + Math.random() * 20, // Nitrógeno 75-95%
-            65 + Math.random() * 25, // Fósforo 65-90%
-            80 + Math.random() * 15  // Potasio 80-95%
+            parseFloat(phValue.toString()) || 6.5,
+            parseFloat(ecValue.toString()) || 1.2
           ],
           backgroundColor: [
-            'rgba(76, 175, 80, 0.8)',
-            'rgba(156, 39, 176, 0.8)',
-            'rgba(255, 152, 0, 0.8)',
-            'rgba(63, 81, 181, 0.8)',
-            'rgba(233, 30, 99, 0.8)'
+            'rgba(33, 150, 243, 0.7)', // Azul para pH
+            'rgba(33, 37, 41, 0.7)'     // Negro para EC
           ],
           borderColor: [
-            '#4CAF50',
-            '#9C27B0',
-            '#FF9800',
-            '#3F51B5',
-            '#E91E63'
+            '#2196F3', 
+            '#212529' 
           ],
-          borderWidth: 2
+          borderWidth: 2,
+          borderRadius: 4,
+          borderSkipped: false
+        }
+      ]
+    };
+  }
+
+  private initSueloChartWithDefaults() {
+    // Datos del suelo reales - solo pH y EC del backend con validación (gráfico de barras)
+    const phValue = this.dashboardData?.calidadSuelo?.ph || 6.5;
+    const ecValue = this.dashboardData?.calidadSuelo?.ec || 1.2;
+    
+    this.suplementosChartData = {
+      labels: ['pH', 'EC (mS/cm)'],
+      datasets: [
+        {
+          label: 'Análisis del Suelo',
+          data: [
+            parseFloat(phValue.toString()) || 6.5,
+            parseFloat(ecValue.toString()) || 1.2
+          ],
+          backgroundColor: [
+            'rgba(33, 150, 243, 0.7)', // Azul para pH
+            'rgba(33, 37, 41, 0.7)'     // Negro para EC
+          ],
+          borderColor: [
+            '#2196F3', // Azul más intenso para borde pH
+            '#212529'  // Negro para borde EC
+          ],
+          borderWidth: 2,
+          borderRadius: 4,
+          borderSkipped: false
         }
       ]
     };
@@ -382,6 +450,76 @@ export class DashboardComponent implements OnInit, OnDestroy {
             color: 'rgba(255, 255, 255, 0.8)',
             font: {
               size: 11
+            }
+          }
+        }
+      }
+    };
+
+    // Opciones específicas para el gráfico de barras del suelo
+    this.soilChartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false // No necesitamos leyenda para un solo dataset
+        },
+        tooltip: {
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          titleColor: '#333',
+          bodyColor: '#666',
+          borderColor: '#ddd',
+          borderWidth: 1,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context: any) {
+              const label = context.label;
+              const value = context.parsed.y;
+              if (label === 'pH') {
+                let estado = '';
+                if (value >= 6.0 && value <= 8.0) estado = ' (Óptimo)';
+                else if (value >= 5.5 && value <= 8.5) estado = ' (Bueno)';
+                else estado = ' (Revisar)';
+                return `pH: ${value.toFixed(1)}${estado}`;
+              } else if (label.includes('EC')) {
+                let estado = '';
+                if (value >= 0.8 && value <= 3.0) estado = ' (Óptimo)';
+                else if (value >= 0.5 && value <= 3.5) estado = ' (Bueno)';
+                else estado = ' (Revisar)';
+                return `EC: ${value.toFixed(1)} mS/cm${estado}`;
+              }
+              return `${label}: ${value}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#666',
+            font: {
+              size: 12,
+              weight: '500'
+            }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          max: 15, // Máximo que permite mostrar tanto pH (0-14) como EC (0-5+)
+          grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.1)'
+          },
+          ticks: {
+            color: '#666',
+            font: {
+              size: 11
+            },
+            callback: function(value: any) {
+              return value.toFixed(1);
             }
           }
         }

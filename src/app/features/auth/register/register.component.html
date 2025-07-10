@@ -25,250 +25,125 @@
         </div>
       </div>
 
-      <div class="steps-section" *ngIf="!isMobile">
-        <p-steps
-          [model]="steps"
-          [activeIndex]="currentStep"
-          [readonly]="true"
-          styleClass="custom-steps">
-        </p-steps>
-      </div>
-
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-
-        <div class="form-step" *ngIf="currentStep === 0">
-          <div class="step-header">
-            <h3 class="step-title">Datos Personales</h3>
-            <p class="step-description">Cuéntanos un poco sobre ti</p>
-          </div>
-
-          <div class="form-grid">
-            <div class="form-field">
-              <label for="name" class="field-label">
-                <i class="pi pi-user"></i>
-                Nombre
-              </label>
-              <input
-                id="name"
-                type="text"
-                pInputText
-                formControlName="name"
-                placeholder="Tu nombre"
-                class="form-input"
-                [class.input-error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
-              <small class="error-message"
-                     *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                El nombre es requerido
-              </small>
-            </div>
-
-            <div class="form-field">
-              <label for="lastName" class="field-label">
-                <i class="pi pi-user"></i>
-                Apellidos
-              </label>
-              <input
-                id="lastName"
-                type="text"
-                pInputText
-                formControlName="lastName"
-                placeholder="Tus apellidos"
-                class="form-input"
-                [class.input-error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-              <small class="error-message"
-                     *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                Los apellidos son requeridos
-              </small>
-            </div>
-          </div>
+        <div class="step-header">
+          <h3 class="step-title">Crear tu cuenta</h3>
+          <p class="step-description">Completa los siguientes campos para registrarte</p>
         </div>
 
-        <div class="form-step" *ngIf="currentStep === 1">
-          <div class="step-header">
-            <h3 class="step-title">Ubicación</h3>
-            <p class="step-description">¿Dónde se encuentran tus cultivos?</p>
+        <div class="form-grid single-column">
+          <div class="form-field">
+            <label for="email" class="field-label">
+              <i class="pi pi-envelope"></i>
+              Correo Electrónico
+            </label>
+            <input
+              id="email"
+              type="email"
+              pInputText
+              formControlName="email"
+              placeholder="tu@email.com"
+              class="form-input"
+              [class.input-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+            <small class="error-message"
+                   *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              Ingresa un email válido
+            </small>
           </div>
 
-          <div class="form-grid">
-            <div class="form-field">
-              <label for="country" class="field-label">
-                <i class="pi pi-globe"></i>
-                País
-              </label>
-              <p-dropdown
-                id="country"
-                [options]="countries"
-                formControlName="country"
-                placeholder="Selecciona tu país"
-                optionLabel="label"
-                optionValue="value"
-                styleClass="w-full country-dropdown"
-                [class.input-error]="registerForm.get('country')?.invalid && registerForm.get('country')?.touched">
-              </p-dropdown>
-              <small class="error-message"
-                     *ngIf="registerForm.get('country')?.invalid && registerForm.get('country')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                Selecciona tu país
-              </small>
-            </div>
+          <div class="form-field">
+            <label for="password" class="field-label">
+              <i class="pi pi-lock"></i>
+              Contraseña
+            </label>
+            <p-password
+              id="password"
+              formControlName="password"
+              [toggleMask]="true"
+              placeholder="Crea una contraseña segura"
+              styleClass="w-full password-input"
+              inputStyleClass="form-input"
+              [class.input-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+            </p-password>
 
-            <div class="form-field">
-              <label for="city" class="field-label">
-                <i class="pi pi-map-marker"></i>
-                Ciudad
-              </label>
-              <p-dropdown
-                id="city"
-                [options]="availableCities"
-                formControlName="city"
-                placeholder="Selecciona tu ciudad"
-                optionLabel="label"
-                optionValue="value"
-                [disabled]="!registerForm.get('country')?.value"
-                styleClass="w-full city-dropdown"
-                [class.input-error]="registerForm.get('city')?.invalid && registerForm.get('city')?.touched">
-              </p-dropdown>
-              <small class="error-message"
-                     *ngIf="registerForm.get('city')?.invalid && registerForm.get('city')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                Selecciona tu ciudad
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-step" *ngIf="currentStep === 2">
-          <div class="step-header">
-            <h3 class="step-title">Credenciales de Acceso</h3>
-            <p class="step-description">Crea tu cuenta segura</p>
-          </div>
-
-          <div class="form-grid single-column">
-            <div class="form-field">
-              <label for="email" class="field-label">
-                <i class="pi pi-envelope"></i>
-                Correo Electrónico
-              </label>
-              <input
-                id="email"
-                type="email"
-                pInputText
-                formControlName="email"
-                placeholder="tu@email.com"
-                class="form-input"
-                [class.input-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-              <small class="error-message"
-                     *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                Ingresa un email válido
-              </small>
-            </div>
-
-            <div class="form-field">
-              <label for="password" class="field-label">
-                <i class="pi pi-lock"></i>
-                Contraseña
-              </label>
-              <p-password
-                id="password"
-                formControlName="password"
-                [toggleMask]="true"
-                placeholder="Crea una contraseña segura"
-                styleClass="w-full password-input"
-                inputStyleClass="form-input"
-                [class.input-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-              </p-password>
-
-              <div class="password-strength" *ngIf="registerForm.get('password')?.value">
-                <div class="strength-bar">
-                  <div class="strength-fill"
-                       [style.width.%]="passwordStrength"
-                       [style.background-color]="getPasswordStrengthColor()">
-                  </div>
+            <div class="password-strength" *ngIf="registerForm.get('password')?.value">
+              <div class="strength-bar">
+                <div class="strength-fill"
+                     [style.width.%]="passwordStrength"
+                     [style.background-color]="getPasswordStrengthColor()">
                 </div>
-                <span class="strength-text" [style.color]="getPasswordStrengthColor()">
-                  {{ getPasswordStrengthText() }}
-                </span>
               </div>
-
-              <small class="error-message"
-                     *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                La contraseña debe tener al menos 8 caracteres con mayúsculas, minúsculas y números
-              </small>
+              <span class="strength-text" [style.color]="getPasswordStrengthColor()">
+                {{ getPasswordStrengthText() }}
+              </span>
             </div>
 
-            <div class="form-field">
-              <label for="confirmPassword" class="field-label">
-                <i class="pi pi-lock"></i>
-                Confirmar Contraseña
+            <small class="error-message"
+                   *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              La contraseña debe tener al menos 8 caracteres
+            </small>
+          </div>
+
+          <div class="form-field">
+            <label for="confirmPassword" class="field-label">
+              <i class="pi pi-lock"></i>
+              Confirmar Contraseña
+            </label>
+            <p-password
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              [toggleMask]="true"
+              [feedback]="false"
+              placeholder="Confirma tu contraseña"
+              styleClass="w-full password-input"
+              inputStyleClass="form-input"
+              [class.input-error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+            </p-password>
+            <small class="error-message"
+                   *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              Las contraseñas no coinciden
+            </small>
+          </div>
+
+          <div class="form-field terms-field">
+            <div class="terms-checkbox">
+              <p-checkbox
+                id="acceptTerms"
+                formControlName="acceptTerms"
+                [binary]="true"
+                styleClass="custom-checkbox">
+              </p-checkbox>
+              <label for="acceptTerms" class="terms-label">
+                Acepto los
+                <a href="#" class="terms-link">Términos y Condiciones</a>
+                y la
+                <a href="#" class="terms-link">Política de Privacidad</a>
               </label>
-              <p-password
-                id="confirmPassword"
-                formControlName="confirmPassword"
-                [toggleMask]="true"
-                [feedback]="false"
-                placeholder="Confirma tu contraseña"
-                styleClass="w-full password-input"
-                inputStyleClass="form-input"
-                [class.input-error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
-              </p-password>
-              <small class="error-message"
-                     *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                Las contraseñas no coinciden
-              </small>
             </div>
-
-            <div class="form-field terms-field">
-              <div class="terms-checkbox">
-                <p-checkbox
-                  id="acceptTerms"
-                  formControlName="acceptTerms"
-                  [binary]="true"
-                  styleClass="custom-checkbox">
-                </p-checkbox>
-                <label for="acceptTerms" class="terms-label">
-                  Acepto los
-                  <a href="#" class="terms-link">Términos y Condiciones</a>
-                  y la
-                  <a href="#" class="terms-link">Política de Privacidad</a>
-                </label>
-              </div>
-              <small class="error-message"
-                     *ngIf="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched">
-                <i class="pi pi-exclamation-circle"></i>
-                Debes aceptar los términos y condiciones
-              </small>
-            </div>
+            <small class="error-message"
+                   *ngIf="registerForm.get('acceptTerms')?.invalid && registerForm.get('acceptTerms')?.touched">
+              <i class="pi pi-exclamation-circle"></i>
+              Debes aceptar los términos y condiciones
+            </small>
           </div>
         </div>
 
         <div class="form-navigation">
           <p-button
-            label="Anterior"
-            icon="pi pi-chevron-left"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="prevStep()"
-            *ngIf="currentStep > 0"
-            styleClass="nav-button prev-button">
-          </p-button>
-
-          <p-button
-            [label]="currentStep === 2 ? 'Crear Cuenta' : 'Siguiente'"
-            [icon]="currentStep === 2 ? 'pi pi-check' : 'pi pi-chevron-right'"
+            label="Crear Cuenta"
+            icon="pi pi-check"
             iconPos="right"
-            [loading]="loading && currentStep === 2"
-            (onClick)="currentStep === 2 ? onSubmit() : nextStep()"
+            [loading]="loading"
+            type="submit"
             styleClass="nav-button next-button">
           </p-button>
         </div>
       </form>
 
-      <div class="social-section" *ngIf="currentStep === 2">
+      <div class="social-section">
         <div class="divider-section">
           <p-divider align="center" type="solid">
             <span class="divider-text">O regístrate con</span>

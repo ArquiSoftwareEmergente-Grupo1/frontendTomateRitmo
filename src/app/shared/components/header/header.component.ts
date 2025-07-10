@@ -131,13 +131,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   getUserInitials(): string {
-    if (!this.currentUser?.name) return 'U';
-    return this.currentUser.name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    if (!this.currentUser?.email) return 'U';
+    // Tomar las primeras dos letras del email antes del @
+    const emailPrefix = this.currentUser.email.split('@')[0];
+    return emailPrefix.substring(0, 2).toUpperCase();
   }
 
   getGreeting(): string {

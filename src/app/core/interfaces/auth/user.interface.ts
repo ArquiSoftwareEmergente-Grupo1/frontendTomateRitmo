@@ -1,10 +1,7 @@
 export interface User {
   id: string;
-  name: string;
-  lastName?: string;
   email: string;
-  country?: string;
-  city?: string;
+  username?: string; // Para compatibilidad con el backend
   avatar?: string;
   plan?: string;
   createdAt?: Date;

@@ -22,10 +22,6 @@
           <div class="stat-value">{{ estadisticas.eventosHoy }}</div>
           <div class="stat-label">Hoy</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value">+{{ estadisticas.tendenciaSemanal }}%</div>
-          <div class="stat-label">Esta Semana</div>
-        </div>
       </div>
     </div>
   </div>
@@ -79,11 +75,11 @@
               </div>
 
               <div class="filter-item">
-                <label class="filter-label">Zona</label>
+                <label class="filter-label">Cultivo</label>
                 <p-dropdown
-                  [options]="zonas"
-                  [(ngModel)]="zonaSeleccionada"
-                  placeholder="Todas las zonas"
+                  [options]="cultivos"
+                  [(ngModel)]="cultivoSeleccionado"
+                  placeholder="Todos los cultivos"
                   optionLabel="label"
                   optionValue="value"
                   [showClear]="true"
@@ -141,13 +137,13 @@
                       <p-sortIcon field="evento"></p-sortIcon>
                     </div>
                   </th>
-                  <th pSortableColumn="zona">
+                  <th pSortableColumn="cultivoName">
                     <div class="header-content">
-                      <span>Zona</span>
-                      <p-sortIcon field="zona"></p-sortIcon>
+                      <span>Cultivo</span>
+                      <p-sortIcon field="cultivoName"></p-sortIcon>
                     </div>
                   </th>
-                  <th>Estado</th>
+                  <th>Detalles</th>
                   <th>Acciones</th>
                 </tr>
               </ng-template>
@@ -169,15 +165,12 @@
                     </div>
                   </td>
 
-                  <td class="zone-cell">
-                    <p-chip [label]="evento.zona" styleClass="zone-chip"></p-chip>
+                  <td class="cultivo-cell">
+                    <p-chip [label]="evento.cultivoName || 'No especificado'" styleClass="cultivo-chip"></p-chip>
                   </td>
 
-                  <td class="status-cell">
-                    <p-badge
-                      value="Completado"
-                      [severity]="getEventSeverity(evento.evento)" >
-                    </p-badge>
+                  <td class="details-cell">
+                    <span class="details-text">{{ evento.detalles || 'Sin detalles' }}</span>
                   </td>
 
                   <td class="actions-cell">

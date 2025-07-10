@@ -24,8 +24,8 @@
             <span class="stat-label">Estado</span>
           </div>
           <div class="stat-item">
-            <span class="stat-value">{{currentUser.country || 'No definido'}}</span>
-            <span class="stat-label">País</span>
+            <span class="stat-value">{{currentUser.plan || 'Basic'}}</span>
+            <span class="stat-label">Plan</span>
           </div>
         </div>
       </div>
@@ -50,29 +50,6 @@
           <h3 class="section-title">Información Básica</h3>
 
           <div class="form-field">
-            <label for="name" class="field-label">
-              <i class="pi pi-user"></i>
-              Nombre completo
-            </label>
-            <input
-              id="name"
-              type="text"
-              pInputText
-              formControlName="name"
-              class="form-input"
-              [readonly]="!editing"
-              placeholder="Ingresa tu nombre completo"
-            />
-            <div
-              class="error-message"
-              *ngIf="editing && perfilForm.get('name')?.invalid && perfilForm.get('name')?.touched"
-            >
-              <i class="pi pi-exclamation-triangle"></i>
-              El nombre es requerido (mínimo 2 caracteres)
-            </div>
-          </div>
-
-          <div class="form-field">
             <label for="email" class="field-label">
               <i class="pi pi-envelope"></i>
               Correo electrónico
@@ -95,57 +72,6 @@
             </div>
           </div>
         </div>
-
-        <div class="form-section">
-          <h3 class="section-title">Ubicación</h3>
-
-          <div class="form-field">
-            <label for="country" class="field-label">
-              <i class="pi pi-globe"></i>
-              País
-            </label>
-            <input
-              id="country"
-              type="text"
-              pInputText
-              formControlName="country"
-              class="form-input"
-              [readonly]="!editing"
-              placeholder="Selecciona tu país"
-            />
-            <div
-              class="error-message"
-              *ngIf="editing && perfilForm.get('country')?.invalid && perfilForm.get('country')?.touched"
-            >
-              <i class="pi pi-exclamation-triangle"></i>
-              El país es requerido
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label for="city" class="field-label">
-              <i class="pi pi-map-marker"></i>
-              Ciudad
-            </label>
-            <input
-              id="city"
-              type="text"
-              pInputText
-              formControlName="city"
-              class="form-input"
-              [readonly]="!editing"
-              placeholder="Ingresa tu ciudad"
-            />
-            <div
-              class="error-message"
-              *ngIf="editing && perfilForm.get('city')?.invalid && perfilForm.get('city')?.touched"
-            >
-              <i class="pi pi-exclamation-triangle"></i>
-              La ciudad es requerida
-            </div>
-          </div>
-        </div>
-
 
         <div class="form-section">
           <h3 class="section-title">Seguridad</h3>

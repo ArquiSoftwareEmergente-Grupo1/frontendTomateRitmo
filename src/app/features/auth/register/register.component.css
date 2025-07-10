@@ -52,29 +52,10 @@
   margin: 0;
 }
 
-.steps-section {
-  margin-bottom: 2rem;
-}
-
-.custom-steps .p-steps-item.p-highlight .p-steps-number {
-  background: #005F40 !important;
-  border-color: #005F40 !important;
-}
-
-.custom-steps .p-steps-item.p-highlight .p-steps-title {
-  color: #005F40 !important;
-}
-
 .register-form {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-}
-
-.form-step {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
 }
 
 .step-header {

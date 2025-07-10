@@ -42,10 +42,7 @@ export class PerfilComponent implements OnInit {
 
   initForm() {
     this.perfilForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      country: ['', [Validators.required]],
-      city: ['', [Validators.required]],
       password: ['']
     });
   }
@@ -55,10 +52,7 @@ export class PerfilComponent implements OnInit {
       this.currentUser = user;
       if (user) {
         this.perfilForm.patchValue({
-          name: user.name,
-          email: user.email,
-          country: user.country,
-          city: user.city
+          email: user.email
         });
       }
     });
@@ -77,10 +71,7 @@ export class PerfilComponent implements OnInit {
       const formData = this.perfilForm.value;
 
       const updateData: Partial<User> = {
-        name: formData.name,
-        email: formData.email,
-        country: formData.country,
-        city: formData.city
+        email: formData.email
       };
 
       this.authService.updateProfile(updateData).subscribe({

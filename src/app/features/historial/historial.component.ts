@@ -9,7 +9,6 @@ import { Calendar } from 'primeng/calendar';
 import { FormsModule } from '@angular/forms';
 import {DropdownModule} from 'primeng/dropdown';
 import { TabView, TabPanel } from 'primeng/tabview';
-import { Badge } from 'primeng/badge';
 import { Chip } from 'primeng/chip';
 import {EventoHistorico} from '../../core/interfaces/historial/historial-historico.interface';
 import {DatosGrafica} from '../../core/interfaces/historial/datos-grafica.interface';
@@ -28,7 +27,6 @@ import {Toast} from 'primeng/toast';
     FormsModule,
     TabView,
     TabPanel,
-    Badge,
     Chip,
     DropdownModule,
     NgClass,
@@ -47,24 +45,14 @@ export class HistorialComponent implements OnInit {
   fechaSeleccionada: Date = new Date();
   rangoFechas: Date[] = [];
   tipoEventoSeleccionado: string | null = null;
-  zonaSeleccionada: string | null = null;
+  cultivoSeleccionado: string | null = null;
 
-  tiposEvento = [
-    { label: 'Todos los tipos', value: null },
-    { label: 'Riego', value: 'riego' },
-    { label: 'Fertilización', value: 'fertilizacion' },
-    { label: 'Detección de plagas', value: 'plagas' },
-    { label: 'Mantenimiento', value: 'mantenimiento' },
-    { label: 'Cosecha', value: 'cosecha' }
+  tiposEvento: { label: string; value: string | null }[] = [
+    { label: 'Todos los tipos', value: null }
   ];
 
-  zonas = [
-    { label: 'Todas las zonas', value: null },
-    { label: 'Sector 1', value: 'Sector 1' },
-    { label: 'Sector 2', value: 'Sector 2' },
-    { label: 'Sector 3', value: 'Sector 3' },
-    { label: 'Sector 4', value: 'Sector 4' },
-    { label: 'Sector 5', value: 'Sector 5' }
+  cultivos: { label: string; value: string | null }[] = [
+    { label: 'Todos los cultivos', value: null }
   ];
 
   chartOptions: any;
@@ -76,7 +64,7 @@ export class HistorialComponent implements OnInit {
     totalEventos: 0,
     eventosHoy: 0,
     tipoMasFrecuente: '',
-    zonaMasActiva: '',
+    cultivoMasComun: '',
     tendenciaSemanal: 0
   };
 
@@ -113,25 +101,68 @@ export class HistorialComponent implements OnInit {
   loadData() {
     this.loading = true;
 
-    Promise.all([
-      this.historialService.getEventosHistoricos().toPromise(),
-      this.historialService.getDatosGraficaAmbiental().toPromise(),
-      this.loadEstadisticas()
-    ]).then(([eventos, grafica]) => {
-      this.eventos = eventos || [];
-      this.datosGrafica = grafica || null;
-      this.applyFilters();
-      this.createTimelineEvents();
-      this.loading = false;
-    }).catch(error => {
-      console.error('Error loading data:', error);
-      this.loading = false;
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Error al cargar el historial'
-      });
+    // Cargar todos los eventos sin filtros desde el backend
+    this.historialService.getEventosHistoricos().subscribe({
+      next: (eventos) => {
+        this.eventos = eventos;
+        this.populateTiposEventoList(); // Generar lista de tipos de evento dinámicamente
+        this.populateCultivosList(); // Generar lista de cultivos dinámicamente
+        this.applyFilters();
+        this.createTimelineEvents();
+        this.loadEstadisticas();
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.loading = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar el historial'
+        });
+      }
     });
+  }
+
+  private populateTiposEventoList() {
+    // Extraer tipos de evento únicos de los eventos
+    const tiposUnicos = [...new Set(
+      this.eventos
+        .map(evento => evento.evento)
+        .filter(evento => evento && evento.trim() !== '') // Filtrar valores nulos, undefined o vacíos
+    )] as string[]; // Asegurar que son strings
+
+    // Recrear la lista de tipos de evento con los valores dinámicos
+    this.tiposEvento = [
+      { label: 'Todos los tipos', value: null },
+      ...tiposUnicos.map(tipo => ({
+        label: this.formatEventType(tipo),
+        value: tipo
+      }))
+    ];
+  }
+
+  private formatEventType(tipo: string): string {
+    // Convertir el tipo de evento a un formato más legible
+    return tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase();
+  }
+
+  private populateCultivosList() {
+    // Extraer cultivos únicos de los eventos
+    const cultivosUnicos = [...new Set(
+      this.eventos
+        .map(evento => evento.cultivoName)
+        .filter(cultivo => cultivo && cultivo.trim() !== '') // Filtrar valores nulos, undefined o vacíos
+    )] as string[]; // Asegurar que son strings
+
+    // Recrear la lista de cultivos con los valores dinámicos
+    this.cultivos = [
+      { label: 'Todos los cultivos', value: null },
+      ...cultivosUnicos.map(cultivo => ({
+        label: cultivo,
+        value: cultivo
+      }))
+    ];
   }
 
   private loadEstadisticas(): Promise<void> {
@@ -140,7 +171,7 @@ export class HistorialComponent implements OnInit {
         totalEventos: this.eventos.length,
         eventosHoy: this.eventos.filter(e => this.isToday(new Date(e.fecha))).length,
         tipoMasFrecuente: 'Riego automático',
-        zonaMasActiva: 'Sector 1',
+        cultivoMasComun: 'Tomate',
         tendenciaSemanal: 15
       };
       resolve();
@@ -170,7 +201,7 @@ export class HistorialComponent implements OnInit {
         return false;
       }
 
-      if (this.zonaSeleccionada && evento.zona !== this.zonaSeleccionada) {
+      if (this.cultivoSeleccionado && evento.cultivoName !== this.cultivoSeleccionado) {
         return false;
       }
 
@@ -194,7 +225,7 @@ export class HistorialComponent implements OnInit {
 
   clearFilters() {
     this.tipoEventoSeleccionado = null;
-    this.zonaSeleccionada = null;
+    this.cultivoSeleccionado = null;
     this.initFechaRango();
     this.applyFilters();
   }
@@ -206,12 +237,16 @@ export class HistorialComponent implements OnInit {
         date: new Date(evento.fecha).toLocaleDateString(),
         icon: this.getEventIcon(evento.evento),
         color: this.getEventColor(evento.evento),
-        evento: evento
+        evento: evento,
+        cultivo: evento.cultivoName || 'No especificado',
+        detalles: evento.detalles || 'Sin detalles'
       }));
   }
 
   protected getEventIcon(evento: string): string {
     const eventoLower = evento.toLowerCase();
+    if (eventoLower.includes('creación') || eventoLower.includes('creacion')) return 'pi pi-plus-circle';
+    if (eventoLower.includes('eliminación') || eventoLower.includes('eliminacion')) return 'pi pi-minus-circle';
     if (eventoLower.includes('riego')) return 'pi pi-tint';
     if (eventoLower.includes('fertiliz')) return 'pi pi-sparkles';
     if (eventoLower.includes('plaga')) return 'pi pi-bug';
@@ -222,6 +257,8 @@ export class HistorialComponent implements OnInit {
 
   protected getEventColor(evento: string): string {
     const eventoLower = evento.toLowerCase();
+    if (eventoLower.includes('creación') || eventoLower.includes('creacion')) return '#66BB6A';
+    if (eventoLower.includes('eliminación') || eventoLower.includes('eliminacion')) return '#FF5722';
     if (eventoLower.includes('riego')) return '#42A5F5';
     if (eventoLower.includes('fertiliz')) return '#66BB6A';
     if (eventoLower.includes('plaga')) return '#FF7043';
@@ -232,6 +269,8 @@ export class HistorialComponent implements OnInit {
 
   getEventSeverity(evento: string): 'success' | 'info' | 'warn' | 'danger' {
     const eventoLower = evento.toLowerCase();
+    if (eventoLower.includes('eliminación') || eventoLower.includes('eliminacion')) return 'danger';
+    if (eventoLower.includes('creación') || eventoLower.includes('creacion')) return 'success';
     if (eventoLower.includes('plaga') || eventoLower.includes('error')) return 'danger';
     if (eventoLower.includes('mantenimiento') || eventoLower.includes('alerta')) return 'warn';
     if (eventoLower.includes('cosecha') || eventoLower.includes('fertiliz')) return 'success';
@@ -318,55 +357,15 @@ export class HistorialComponent implements OnInit {
 
   updateChartOptions() {
   }
-
-  exportarDatos() {
-    this.exportando = true;
-
-    const fechaInicio = this.rangoFechas[0] || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const fechaFin = this.rangoFechas[1] || new Date();
-
-    this.historialService.exportarDatos(fechaInicio, fechaFin).subscribe({
-      next: (nombreArchivo) => {
-        this.exportando = false;
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Exportación Exitosa',
-          detail: `Archivo "${nombreArchivo}" descargado correctamente`,
-          life: 4000
-        });
-      },
-      error: (error) => {
-        this.exportando = false;
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error de Exportación',
-          detail: 'No se pudo exportar el historial'
-        });
-      }
-    });
-  }
-
-  exportarPDF() {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Exportando PDF',
-      detail: 'Generando reporte en PDF...'
-    });
-  }
-
-  exportarExcel() {
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Exportando Excel',
-      detail: 'Generando reporte en Excel...'
-    });
-  }
-
+  
   verDetalleEvento(evento: EventoHistorico) {
+    const cultivo = evento.cultivoName || 'No especificado';
+    const detalles = evento.detalles || 'Sin detalles adicionales';
+    
     this.messageService.add({
       severity: 'info',
       summary: 'Detalle del Evento',
-      detail: `${evento.evento} en ${evento.zona}`,
+      detail: `${evento.evento} - Cultivo: ${cultivo} - ${detalles}`,
       life: 3000
     });
   }
