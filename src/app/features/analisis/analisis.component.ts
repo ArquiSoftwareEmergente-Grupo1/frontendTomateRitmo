@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, HostListener, ChangeDetectorRef } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { AnalisisService } from '../../core/services/analisis/analisis.service';
 import { CultivosService } from '../../core/services/cultivos/cultivos.service';
@@ -48,6 +48,9 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
   mostrarDetalleModal = false;
   analisisDetalle: AnalisisResultado | null = null;
   
+  // Cache de URLs de blob para imágenes de ngrok
+  imagenBlobUrls: Map<string, string> = new Map();
+  
   // Modal de historial completo
   mostrarHistorialCompletoModal = false;
   historialCompletoFiltrado: AnalisisResultado[] = [];
@@ -94,7 +97,8 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
   constructor(
     private analisisService: AnalisisService,
     private cultivosService: CultivosService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private cdr: ChangeDetectorRef
   ) {
     this.checkScreenSize();
   }
@@ -120,6 +124,14 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnDestroy() {
     // No limpiar el cache al destruir el componente para mantener persistencia
+    
+    // Limpiar URLs de blob para evitar memory leaks
+    this.imagenBlobUrls.forEach((url, key) => {
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    });
+    this.imagenBlobUrls.clear();
   }
 
   private checkScreenSize() {
@@ -162,6 +174,9 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
           if (resultados.length > 0) {
             this.ultimoAnalisis = resultados[0];
           }
+          
+          // Pre-cargar imágenes como blobs
+          this.precargarImagenesComoBlobs(resultados);
           
           // Si hay un cultivo seleccionado, refrescar su historial
           if (this.cultivoSeleccionado) {
@@ -860,5 +875,73 @@ export class AnalisisVisualComponent implements OnInit, OnDestroy, AfterViewInit
     if (img) {
       img.src = 'assets/placeholder-image.png';
     }
+  }
+
+  // Método para obtener URL de blob de imagen para evitar advertencia de ngrok
+  getImagenBlobUrl(imageUrl: string): string {
+    if (!imageUrl) return '';
+    
+    // Si ya tenemos la URL de blob en cache, devolverla
+    if (this.imagenBlobUrls.has(imageUrl)) {
+      return this.imagenBlobUrls.get(imageUrl)!;
+    }
+    
+    // Si es una URL de ngrok, cargarla como blob
+    if (imageUrl.includes('ngrok-free.app') || imageUrl.includes('ngrok.io')) {
+      // Marcar como cargando para evitar múltiples peticiones
+      const loadingKey = imageUrl + '_loading';
+      if (!this.imagenBlobUrls.has(loadingKey)) {
+        this.imagenBlobUrls.set(loadingKey, 'loading');
+        
+        this.analisisService.getImagenAsBlob(imageUrl).subscribe({
+          next: (blobUrl) => {
+            this.imagenBlobUrls.set(imageUrl, blobUrl);
+            this.imagenBlobUrls.delete(loadingKey);
+            this.cdr.detectChanges(); // Forzar detección de cambios
+          },
+          error: (error) => {
+            console.error('Error cargando imagen como blob:', error);
+            this.imagenBlobUrls.delete(loadingKey);
+            // En caso de error, usar la URL original
+            this.imagenBlobUrls.set(imageUrl, imageUrl);
+            this.cdr.detectChanges();
+          }
+        });
+      }
+      
+      // Devolver una imagen placeholder mientras carga
+      return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJNODAgNjVMMTIwIDEwNUw4MCA2NVoiIGZpbGw9IiM5Q0E0QUYiLz48L3N2Zz4=';
+    }
+    
+    // Para URLs que no son de ngrok, devolver la URL original
+    return imageUrl;
+  }
+
+  // Método para pre-cargar imágenes como blobs
+  private precargarImagenesComoBlobs(resultados: AnalisisResultado[]): void {
+    resultados.forEach(resultado => {
+      if (resultado.imagen && (resultado.imagen.includes('ngrok-free.app') || resultado.imagen.includes('ngrok.io'))) {
+        // Solo cargar si no está ya en cache
+        if (!this.imagenBlobUrls.has(resultado.imagen)) {
+          const loadingKey = resultado.imagen + '_loading';
+          if (!this.imagenBlobUrls.has(loadingKey)) {
+            this.imagenBlobUrls.set(loadingKey, 'loading');
+            
+            this.analisisService.getImagenAsBlob(resultado.imagen).subscribe({
+              next: (blobUrl) => {
+                this.imagenBlobUrls.set(resultado.imagen, blobUrl);
+                this.imagenBlobUrls.delete(loadingKey);
+                this.cdr.detectChanges();
+              },
+              error: (error) => {
+                console.error('Error pre-cargando imagen:', error);
+                this.imagenBlobUrls.delete(loadingKey);
+                this.imagenBlobUrls.set(resultado.imagen, resultado.imagen);
+              }
+            });
+          }
+        }
+      }
+    });
   }
 }

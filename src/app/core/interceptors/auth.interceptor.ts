@@ -25,15 +25,23 @@ export class AuthInterceptor implements HttpInterceptor {
     console.log('AuthInterceptor - URL:', req.url);
     console.log('AuthInterceptor - Token:', token ? 'Token presente' : 'Sin token');
 
-    // Solo se agregan los headers si hay token
-    let modifiedReq = req;
-    if (token) {
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        ...(isFormData ? {} : { 'Content-Type': 'application/json' })
-      };
-      modifiedReq = req.clone({ setHeaders: headers });
+    // Configurar headers base
+    let headers: { [key: string]: string } = {};
+    
+    // Agregar header de ngrok si la URL es de ngrok
+    if (req.url.includes('ngrok-free.app') || req.url.includes('ngrok.io')) {
+      headers['ngrok-skip-browser-warning'] = 'true';
     }
+    
+    // Solo se agregan los headers de auth si hay token
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
+
+    const modifiedReq = req.clone({ setHeaders: headers });
 
     return next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {

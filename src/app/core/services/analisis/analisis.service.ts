@@ -67,7 +67,7 @@ export class AnalisisService {
     formData.append('cultivoId', cultivoId || '1');
     
     const headers = new HttpHeaders({
-      // Headers básicos para el envío de archivo
+      'ngrok-skip-browser-warning': 'true'
     });
 
     // Llamar a Azure Function para análisis y guardado de imagen
@@ -76,7 +76,18 @@ export class AnalisisService {
         const clase = respuesta.class || respuesta.prediction || 'unknown';
         const confianza = respuesta.confidence || respuesta.score || 0.5;
         const imagenGuardadaPath = respuesta.saved_image_path || '';
-        const imagenUrl = respuesta.saved_image_url ? `${this.iaUrl}${respuesta.saved_image_url}` : '';
+        
+        // Manejar la URL de la imagen correctamente
+        let imagenUrl = '';
+        if (respuesta.saved_image_url) {
+          // Si la URL ya es completa (contiene http), procesarla para reemplazar localhost
+          if (respuesta.saved_image_url.startsWith('http')) {
+            imagenUrl = this.procesarUrlImagen(respuesta.saved_image_url);
+          } else {
+            // Si es solo un path, concatenar con la URL base
+            imagenUrl = `${this.iaUrl}${respuesta.saved_image_url}`;
+          }
+        }
         
         const diagnostico = clase === 'healthy' || clase === 'Healthy'
           ? 'Cultivo saludable'
@@ -248,7 +259,14 @@ export class AnalisisService {
           if (!resultados || resultados.length === 0) {
             return [];
           }
-          return resultados.sort((a, b) =>
+          
+          // Procesar URLs de imágenes para reemplazar localhost con ngrok
+          const resultadosProcesados = resultados.map(resultado => {
+            resultado.imagen = this.procesarUrlImagen(resultado.imagen);
+            return resultado;
+          });
+          
+          return resultadosProcesados.sort((a, b) =>
             new Date(b.fechaAnalisis || '').getTime() - new Date(a.fechaAnalisis || '').getTime()
           );
         }),
@@ -261,6 +279,11 @@ export class AnalisisService {
   getAnalisisById(id: string): Observable<AnalisisResultado> {
     return this.http.get<AnalisisResultado>(`${this.baseUrl}/analisisResultados/${id}`)
       .pipe(
+        map(resultado => {
+          // Procesar URL de imagen para reemplazar localhost con ngrok
+          resultado.imagen = this.procesarUrlImagen(resultado.imagen);
+          return resultado;
+        }),
         catchError(this.handleError)
       );
   }
@@ -317,7 +340,11 @@ export class AnalisisService {
 
   // Método para obtener lista de imágenes guardadas en el servidor
   getImagenesGuardadas(): Observable<any> {
-    return this.http.get<any>(`${this.iaUrl}/images`).pipe(
+    const headers = new HttpHeaders({
+      'ngrok-skip-browser-warning': 'true'
+    });
+    
+    return this.http.get<any>(`${this.iaUrl}/images`, { headers }).pipe(
       catchError(error => {
         console.error('Error obteniendo imágenes guardadas:', error);
         return throwError(() => error);
@@ -328,6 +355,42 @@ export class AnalisisService {
   // Método para obtener URL completa de una imagen
   getImagenUrl(filename: string): string {
     return `${this.iaUrl}/images/${filename}`;
+  }
+
+  // Método para obtener imagen como blob URL para evitar la pantalla de advertencia de ngrok
+  getImagenAsBlob(imageUrl: string): Observable<string> {
+    const headers = new HttpHeaders({
+      'ngrok-skip-browser-warning': 'true'
+    });
+    
+    return this.http.get(imageUrl, { 
+      headers, 
+      responseType: 'blob' 
+    }).pipe(
+      map(blob => URL.createObjectURL(blob)),
+      catchError(error => {
+        console.error('Error obteniendo imagen como blob:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Método helper para procesar URLs de imágenes y reemplazar localhost con ngrok
+  private procesarUrlImagen(url: string): string {
+    if (!url) return url;
+    
+    // Si la URL contiene localhost, reemplazarla con la URL de ngrok
+    if (url.includes('localhost:')) {
+      // Reemplazar localhost:puerto con la URL completa de ngrok (manteniendo https)
+      return url.replace(/http:\/\/localhost:\d+/, this.iaUrl);
+    }
+    
+    // Si ya es una URL de ngrok pero está en HTTP, cambiarla a HTTPS
+    if (url.startsWith('http://') && url.includes('ngrok-free.app')) {
+      return url.replace('http://', 'https://');
+    }
+    
+    return url;
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {

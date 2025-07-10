@@ -116,7 +116,7 @@
                   *ngFor="let analisis of historialCultivoSeleccionado.slice(0, 3); trackBy: trackByAnalisis"
                   (click)="verDetalleAnalisis(analisis)">
                   <div class="historial-imagen">
-                    <img [src]="analisis.imagen" alt="Análisis previo" />
+                    <img [src]="getImagenBlobUrl(analisis.imagen)" alt="Análisis previo" (error)="onImageError($event)" />
                     <div class="historial-overlay">
                       <i class="pi pi-eye"></i>
                     </div>
@@ -211,7 +211,7 @@
   <div class="detalle-content" *ngIf="analisisDetalle">
     <div class="detalle-header">
       <div class="detalle-imagen-principal">
-        <img [src]="analisisDetalle.imagen" alt="Imagen analizada" />
+        <img [src]="getImagenBlobUrl(analisisDetalle.imagen)" alt="Imagen analizada" (error)="onImageError($event)" />
       </div>
       <div class="detalle-info-principal">
         <h3>{{ analisisDetalle.diagnostico }}</h3>
@@ -447,7 +447,7 @@
               <tr *ngFor="let analisis of historialCompletoPaginado" class="analisis-row">
                 <td class="imagen-cell">
                   <img 
-                    [src]="analisis.imagen" 
+                    [src]="getImagenBlobUrl(analisis.imagen)" 
                     [alt]="'Análisis ' + analisis.id"
                     class="analisis-thumbnail"
                     (error)="onImageError($event)">
